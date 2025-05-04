@@ -1,0 +1,131 @@
+# Общие системные файлы
+Thumbs.db
+.DS_Store
+*.lnk
+
+# Файлы IDE/редакторов
+.vs/
+.idea/
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.iml
+
+# Временные файлы
+*.swp
+*.swo
+*.sass-cache/
+*.tmp
+*.bak
+
+# Файлы сборки .NET
+bin/
+obj/
+[Bb]uild/
+[Bb]uildArtifacts/
+TestResults/
+[Tt]est[Rr]esult*
+*.VisualState.xml
+*.ncrunch*
+*.dotCover
+coverage*.xml
+*.coverage
+
+# Пакеты NuGet
+**/[Pp]ackages/*
+*.nupkg
+nuget.exe
+
+# Конфиги с секретами
+appsettings.json
+appsettings.*.json
+appsettings.*.local.json
+secrets.json
+.env
+.env.local
+.env*.local
+
+# Docker
+**/.dockerignore
+docker-compose.*.yml
+docker-compose.*.yaml
+docker-compose.override*
+**/docker-compose/vs.debug
+**/docker-compose/vs.release
+
+# Логи и журналы
+*.log
+*.log.*
+logs/
+[Nn]pm-[Dd]ebug.log
+
+# Тестовые данные
+**/*.[Tt]est[Rr]esults
+**/TestResults/
+
+# Фронтенд-зависимости (если есть)
+node_modules/
+bower_components/
+jspm_packages/
+*.css.map
+*.js.map
+
+# Выходные артефакты
+dist/
+out/
+publish/
+*.exe
+*.dll
+*.pdb
+*.xml
+
+# Файлы пользовательских настроек
+*.local
+*.pyc
+__pycache__/
+
+# Документация
+**/docs/_site/
+_site/
+*.chm
+*.pdf
+
+# Файлы CI/CD
+.azure/
+.github/actions/
+!.github/workflows/ # Исключаем папку workflows
+.teamcity/
+
+# Файлы машинного обучения
+*.ipynb_checkpoints/
+*.model
+*.weights
+
+# Файлы резервных копий
+*.backup
+*.orig
+
+# Файлы архива
+*.zip
+*.tar
+*.gz
+*.7z
+
+# Исключения для специфичных инструментов
+.sonar/
+.scannerwork/
+.mfractor/
+
+# Файлы шаблонов (примеры)
+!appsettings.example.json
+
+# Исключение для пользовательских конфигов (если нужно)
+!appsettings.Development.json
+
+# JetBrains Rider
+*.sln.dotnet
+.idea/
+*.idea/
+*.sln.iml
+*.sln.ide
