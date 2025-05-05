@@ -1,5 +1,5 @@
 # Базовый образ
-FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
 # Копирование проекта и восстановление зависимостей
@@ -17,7 +17,7 @@ RUN dotnet build "Fitness_App-Auth.API.csproj" -c Release -o /app/build
 RUN dotnet publish "Fitness_App-Auth.API.csproj" -c Release -o /app/publish
 
 # Финальный образ
-FROM mcr.microsoft.com/dotnet/aspnet:7.0
+FROM mcr.microsoft.com/dotnet/aspnet:9.0
 WORKDIR /app
 COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "Fitness_App-Auth.API.dll"]

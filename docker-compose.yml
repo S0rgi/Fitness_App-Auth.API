@@ -1,0 +1,27 @@
+version: '3.9'
+
+services:
+  auth-db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12345
+      POSTGRES_DB: auth_db
+    ports:
+      - "5433:5433"
+    volumes:
+      - auth-db-data:/var/lib/postgresql/data
+
+  auth-api:
+    build:
+      context: .
+      dockerfile: Fitness_App-Auth.API/Dockerfile
+    ports:
+        - "5000:8080"
+    environment:
+      ConnectionStrings__AuthDb: "Host=auth-db;Database=auth_db;Username=postgres;Password=12345"
+    depends_on:
+      - auth-db
+
+volumes:
+  auth-db-data:
