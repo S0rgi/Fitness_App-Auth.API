@@ -13,15 +13,14 @@ services:
       - auth-db-data:/var/lib/postgresql/data
 
   auth-api:
-    build:
-      context: .
-      dockerfile: Fitness_App-Auth.API/Dockerfile
-    ports:
+      build:
+        context: .
+      ports:
         - "5000:8080"
-    environment:
-      ConnectionStrings__AuthDb: "Host=auth-db;Database=auth_db;Username=postgres;Password=12345"
-    depends_on:
-      - auth-db
+      environment:
+        ConnectionStrings__AuthDb: "Host=auth-db;Database=auth_db;Username=postgres;Password=12345"
+      depends_on:
+        - auth-db
 
 volumes:
   auth-db-data:
