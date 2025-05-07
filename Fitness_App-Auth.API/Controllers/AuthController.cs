@@ -85,10 +85,10 @@ namespace Fitness_App_Auth.API.Controllers
 
         }
         [HttpPost("refresh")]
-        public async Task<IActionResult> Refresh([FromBody] string refreshToken)
+        public async Task<IActionResult> Refresh([FromBody] RefreshDto dto)
         {
             var token = await _context.RefreshTokens
-                .FirstOrDefaultAsync(r => r.Token == refreshToken);
+                .FirstOrDefaultAsync(r => r.Token == dto.RefreshToken);
 
             if (token == null || token.IsRevoked || token.ExpiresAt < DateTime.UtcNow)
                 return Unauthorized("Invalid refresh token");
