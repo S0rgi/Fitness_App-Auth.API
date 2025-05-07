@@ -1,0 +1,12 @@
+version: '3.9'
+services:
+  auth-api:
+    build:
+      context: .
+    ports:
+      - "5000:8080"
+    env_file:
+      - .env #
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+    

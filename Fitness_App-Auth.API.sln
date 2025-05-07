@@ -1,0 +1,24 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35931.197 d17.13
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fitness_App-Auth.API", "Fitness_App-Auth.API\Fitness_App-Auth.API.csproj", "{8925AC1F-0CF0-4444-97F6-08A544E745CE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8925AC1F-0CF0-4444-97F6-08A544E745CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8925AC1F-0CF0-4444-97F6-08A544E745CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8925AC1F-0CF0-4444-97F6-08A544E745CE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4C45A654-2292-4798-B1AD-28E260896B78}
+	EndGlobalSection
+EndGlobal
