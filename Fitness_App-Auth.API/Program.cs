@@ -8,6 +8,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Fitness_App_Auth.API.Secure;
 using DotNetEnv;
+using Fitness_App_Auth.API.Interfaces;
+using Fitness_App_Auth.API.secure;
 
 // Загрузим .env (только локально)
 DotNetEnv.Env.Load("../.env");
@@ -40,7 +42,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 Encoding.UTF8.GetBytes(builder.Configuration["Jwt:SecretKey"]))
         };
     });
-
+builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
