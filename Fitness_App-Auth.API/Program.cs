@@ -9,6 +9,7 @@ using System.Text;
 using Fitness_App_Auth.API.Secure;
 using DotNetEnv;
 using Fitness_App_Auth.API.Interfaces;
+using Fitness_App_Auth.API.Service;
 using Fitness_App_Auth.API.secure;
 
 // Загрузим .env (только локально)
@@ -43,6 +44,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>

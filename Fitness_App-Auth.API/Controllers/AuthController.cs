@@ -10,6 +10,7 @@ using Fitness_App_Auth.API.Dtos;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
 using Fitness_App_Auth.API.Interfaces;
+using Fitness_App_Auth.API.Service;
 namespace Fitness_App_Auth.API.Controllers
 {
     [ApiController]
@@ -20,20 +21,18 @@ namespace Fitness_App_Auth.API.Controllers
         private readonly IConfiguration _config;
 
         private readonly ITokenService _tokenService;
-
-        public AuthController(AuthDbContext context, IConfiguration config, ITokenService tokenService)
+        private readonly IAuthService _authService;
+        public AuthController(AuthDbContext context, IConfiguration config, ITokenService tokenService, IAuthService authService)
         {
             _context = context;
             _config = config;
             _tokenService = tokenService;
+            _authService = authService;
         }
 
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDto dto)
         {
-            if (await _context.Users.AnyAsync(u => u.Email == dto.Email))
-                return BadRequest("Email уже занят");
-
             var user = new User
             {
                 Email = dto.Email,
@@ -45,67 +44,25 @@ namespace Fitness_App_Auth.API.Controllers
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            var identity = new ClaimsIdentity(new[]
-            {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Email, user.Email)
-            });
+            var (accessToken, refreshToken) = await _authService.GenerateTokensAsync(user);
+            return Ok(new { accessToken, refreshToken });
 
-            var accessToken = _tokenService.GenerateAccessToken(identity);
-            var refreshToken = _tokenService.GenerateRefreshToken();
-
-            await _context.RefreshTokens.AddAsync(new RefreshToken
-            {
-                Token = refreshToken,
-                UserId = user.Id.ToString(),
-                ExpiresAt = DateTime.UtcNow.AddDays(7)
-            });
-
-            await _context.SaveChangesAsync();
-
-            return Ok(new
-            {
-                accessToken,
-                refreshToken
-            });
         }
 
 
         [HttpPost("login")]
         public async Task<IActionResult> LoginAsync([FromBody] LoginDto dto)
         {
-            var user = _context.Users.FirstOrDefault(u => u.Email == dto.Email);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
             if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
                 return Unauthorized("Неверный email или пароль");
 
-            // Генерация JWT
-            var identity = new ClaimsIdentity(new[]
-            {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Email, user.Email)
-            });
+            var (accessToken, refreshToken) = await _authService.GenerateTokensAsync(user);
+            return Ok(new { accessToken, refreshToken });
 
-            var accessToken = _tokenService.GenerateAccessToken(identity);
-            var refreshToken = _tokenService.GenerateRefreshToken();
-
-            // Сохраняем refresh-токен в БД
-            await _context.RefreshTokens.AddAsync(new RefreshToken
-            {
-                Token = refreshToken,
-                UserId = user.Id.ToString(),
-                ExpiresAt = DateTime.UtcNow.AddDays(7)
-            });
-            await _context.SaveChangesAsync();
-
-            // Возвращаем оба токена
-            return Ok(new
-            {
-                accessToken,
-                refreshToken
-            });
 
         }
-        
+
         [HttpPost("logout")]
         public async Task<IActionResult> Logout([FromBody] RefreshDto dto)
         {
@@ -122,43 +79,31 @@ namespace Fitness_App_Auth.API.Controllers
         [HttpPost("refresh")]
         public async Task<IActionResult> Refresh([FromBody] RefreshDto dto)
         {
-            var token = await _context.RefreshTokens
+            var oldToken = await _context.RefreshTokens
                 .FirstOrDefaultAsync(r => r.Token == dto.RefreshToken);
 
-            if (token == null || token.IsRevoked || token.ExpiresAt < DateTime.UtcNow)
+            if (oldToken == null || oldToken.IsRevoked || oldToken.ExpiresAt < DateTime.UtcNow)
                 return Unauthorized("Invalid refresh token");
 
-            var user = await _context.Users.FindAsync(token.UserId);
+            var user = await _context.Users.FindAsync(oldToken.UserId);
             if (user == null)
                 return Unauthorized("User not found");
 
-            // Генерация нового токена
-            var identity = new ClaimsIdentity(new[]
-            {
-        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-        new Claim(ClaimTypes.Email, user.Email)
-    });
+            // Отзываем старый токен
+            oldToken.IsRevoked = true;
 
-            var newAccessToken = _tokenService.GenerateAccessToken(identity);
-            var newRefreshToken = _tokenService.GenerateRefreshToken();
-
-            // Обновляем refresh token
-            token.IsRevoked = true;
-            _context.RefreshTokens.Add(new RefreshToken
-            {
-                Token = newRefreshToken,
-                UserId = user.Id.ToString(),
-                ExpiresAt = DateTime.UtcNow.AddDays(7)
-            });
+            // Генерируем новую пару токенов через AuthService
+            var (accessToken, refreshToken) = await _authService.GenerateTokensAsync(user);
 
             await _context.SaveChangesAsync();
 
             return Ok(new
             {
-                accessToken = newAccessToken,
-                refreshToken = newRefreshToken
+                accessToken,
+                refreshToken
             });
         }
+
         [HttpPost("validate")]
         public IActionResult ValidateToken([FromBody] TokenValidationDto dto)
         {

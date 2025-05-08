@@ -1,0 +1,42 @@
+﻿using Fitness_App_Auth.API.Data;
+using Fitness_App_Auth.API.Interfaces;
+using Fitness_App_Auth.API.Models;
+using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
+namespace Fitness_App_Auth.API.Service
+{
+    public class AuthService : IAuthService
+    {
+        private readonly ITokenService _tokenService;
+        private readonly AuthDbContext _context;
+
+        public AuthService(ITokenService tokenService, AuthDbContext context)
+        {
+            _tokenService = tokenService;
+            _context = context;
+        }
+
+        public async Task<(string accessToken, string refreshToken)> GenerateTokensAsync(User user)
+        {
+            var identity = new ClaimsIdentity(new[]
+            {
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new Claim(ClaimTypes.Email, user.Email)
+        });
+
+            var accessToken = _tokenService.GenerateAccessToken(identity);
+            var refreshToken = _tokenService.GenerateRefreshToken();
+
+            await _context.RefreshTokens.AddAsync(new RefreshToken
+            {
+                Token = refreshToken,
+                UserId = user.Id.ToString(),
+                ExpiresAt = DateTime.UtcNow.AddDays(7)
+            });
+
+            await _context.SaveChangesAsync();
+
+            return (accessToken, refreshToken);
+        }
+    }
+}
