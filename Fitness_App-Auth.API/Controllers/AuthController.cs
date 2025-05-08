@@ -33,6 +33,8 @@ namespace Fitness_App_Auth.API.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDto dto)
         {
+            if (await _context.Users.AnyAsync(u => u.Email == dto.Email))
+                return BadRequest("Email уже занят");
             var user = new User
             {
                 Email = dto.Email,
