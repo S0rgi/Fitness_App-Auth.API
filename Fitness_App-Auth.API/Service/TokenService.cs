@@ -5,15 +5,17 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-
-namespace Fitness_App_Auth.API.secure
+using Fitness_App_Auth.API.Models;
+using Microsoft.Extensions.Options;
+namespace Fitness_App_Auth.API.Service
 {
     public class TokenService : ITokenService
     {
         private readonly IConfiguration _config;
-
-        public TokenService(IConfiguration config)
+        private readonly JwtOptions _jwtOptions;
+        public TokenService(IConfiguration config,IOptions<JwtOptions> jwtOptions)
         {
+            _jwtOptions = jwtOptions.Value;
             _config = config;
         }
 
@@ -25,7 +27,7 @@ namespace Fitness_App_Auth.API.secure
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = identity,
-                Expires = DateTime.UtcNow.AddMinutes(15),
+                Expires = DateTime.UtcNow.AddMinutes(_jwtOptions.AccessTokenLifetimeMinutes),
                 Issuer = _config["Jwt:Issuer"],
                 Audience = _config["Jwt:Audience"],
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
@@ -59,7 +61,7 @@ namespace Fitness_App_Auth.API.secure
                 issuer: _config["Jwt:Issuer"],
                 audience: _config["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.UtcNow.AddDays(7),
+                expires: DateTime.UtcNow.AddDays(_jwtOptions.RefreshTokenLifetimeDays),
                 signingCredentials: credentials
             );
 

@@ -3,17 +3,19 @@ using Fitness_App_Auth.API.Interfaces;
 using Fitness_App_Auth.API.Models;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 namespace Fitness_App_Auth.API.Service
 {
     public class AuthService : IAuthService
     {
         private readonly ITokenService _tokenService;
         private readonly AuthDbContext _context;
-
-        public AuthService(ITokenService tokenService, AuthDbContext context)
+        private readonly JwtOptions _jwtOptions;
+        public AuthService(ITokenService tokenService, AuthDbContext context,IOptions<JwtOptions> jwtOptions)
         {
             _tokenService = tokenService;
             _context = context;
+                        _jwtOptions = jwtOptions.Value;
         }
 
         public async Task<(string accessToken, string refreshToken)> GenerateTokensAsync(User user)
@@ -31,7 +33,7 @@ namespace Fitness_App_Auth.API.Service
             {
                 Token = refreshToken,
                 UserId = user.Id.ToString(),
-                ExpiresAt = DateTime.UtcNow.AddDays(7)
+                ExpiresAt = DateTime.UtcNow.AddDays(_jwtOptions.RefreshTokenLifetimeDays)
             });
 
             await _context.SaveChangesAsync();

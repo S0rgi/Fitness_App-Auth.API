@@ -10,8 +10,7 @@ using Fitness_App_Auth.API.Secure;
 using DotNetEnv;
 using Fitness_App_Auth.API.Interfaces;
 using Fitness_App_Auth.API.Service;
-using Fitness_App_Auth.API.secure;
-
+using Fitness_App_Auth.API.Models;
 // Загрузим .env (только локально)
 DotNetEnv.Env.Load("../.env");
 
@@ -26,7 +25,7 @@ builder.Configuration
 // База данных
 builder.Services.AddDbContext<AuthDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("AuthDb")));
-
+builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 // JWT Аутентификация
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
