@@ -31,7 +31,6 @@ namespace Fitness_App_Auth.API.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDto dto)
         {
-            // Валидация
             if (await _context.Users.AnyAsync(u => u.Email == dto.Email))
                 return BadRequest("Email уже занят");
 
@@ -46,9 +45,31 @@ namespace Fitness_App_Auth.API.Controllers
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            var token = _tokenService.GenerateJwtToken(user);
-            return Ok(new { user.Id, Token = token });
+            var identity = new ClaimsIdentity(new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Email, user.Email)
+            });
+
+            var accessToken = _tokenService.GenerateAccessToken(identity);
+            var refreshToken = _tokenService.GenerateRefreshToken();
+
+            await _context.RefreshTokens.AddAsync(new RefreshToken
+            {
+                Token = refreshToken,
+                UserId = user.Id.ToString(),
+                ExpiresAt = DateTime.UtcNow.AddDays(7)
+            });
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                accessToken,
+                refreshToken
+            });
         }
+
 
         [HttpPost("login")]
         public async Task<IActionResult> LoginAsync([FromBody] LoginDto dto)
@@ -84,6 +105,20 @@ namespace Fitness_App_Auth.API.Controllers
             });
 
         }
+        
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout([FromBody] RefreshDto dto)
+        {
+            var token = await _context.RefreshTokens.FirstOrDefaultAsync(r => r.Token == dto.RefreshToken);
+            if (token == null) return NotFound("Refresh token not found");
+
+            token.IsRevoked = true;
+            await _context.SaveChangesAsync();
+
+            return Ok("Logged out successfully");
+        }
+
+
         [HttpPost("refresh")]
         public async Task<IActionResult> Refresh([FromBody] RefreshDto dto)
         {
@@ -124,5 +159,32 @@ namespace Fitness_App_Auth.API.Controllers
                 refreshToken = newRefreshToken
             });
         }
+        [HttpPost("validate")]
+        public IActionResult ValidateToken([FromBody] TokenValidationDto dto)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.UTF8.GetBytes(_config["Jwt:SecretKey"]);
+
+            try
+            {
+                tokenHandler.ValidateToken(dto.Token, new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidIssuer = _config["Jwt:Issuer"],
+                    ValidAudience = _config["Jwt:Audience"],
+                    ClockSkew = TimeSpan.Zero
+                }, out SecurityToken validatedToken);
+
+                return Ok("Valid token");
+            }
+            catch
+            {
+                return Unauthorized("Invalid token");
+            }
+        }
+
     }
 }
