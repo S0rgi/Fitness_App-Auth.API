@@ -12,6 +12,7 @@ using System.Security.Cryptography;
 using Fitness_App_Auth.API.Interfaces;
 using Fitness_App_Auth.API.Service;
 using Microsoft.AspNetCore.Authorization;
+using System.Threading.Tasks;
 namespace Fitness_App_Auth.API.Controllers
 {
     [ApiController]
@@ -162,5 +163,22 @@ namespace Fitness_App_Auth.API.Controllers
             }
         }
 
+        [HttpDelete("DeleteUser")]
+        public async Task<IActionResult> DeleteUser(string email){
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+            if (user ==null)
+                return BadRequest("email не найден");
+            _context.Users.Remove(user);
+             await _context.SaveChangesAsync();
+            return Ok("user успешно удалён");
+        }
+        [HttpGet("UserExist")]
+        public async Task<IActionResult> UserExist(string email){
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+            if (user ==null)
+                return BadRequest("email не найден");
+            else
+                return Ok("email найден");
+        }
     }
 }
