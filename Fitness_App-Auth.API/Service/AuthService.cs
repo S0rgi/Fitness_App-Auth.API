@@ -32,7 +32,7 @@ namespace Fitness_App_Auth.API.Service
             await _context.RefreshTokens.AddAsync(new RefreshToken
             {
                 Token = refreshToken,
-                UserId = user.Id.ToString(),
+                UserId = user.Id,
                 ExpiresAt = DateTime.UtcNow.AddDays(_jwtOptions.RefreshTokenLifetimeDays)
             });
 
