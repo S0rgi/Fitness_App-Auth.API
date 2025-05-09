@@ -10,9 +10,6 @@ namespace Fitness_App_Auth.API.Dtos
             [Required]
             [StringLength(100, MinimumLength = 6)]
             public string Password { get; set; }
-
-            [Required]
-            public string Username { get; set; }
         }
     
 }

@@ -22,12 +22,14 @@ namespace Fitness_App_Auth.API.Controllers
 
         private readonly ITokenService _tokenService;
         private readonly IAuthService _authService;
-        public AuthController(AuthDbContext context, IConfiguration config, ITokenService tokenService, IAuthService authService)
+        IUsernameGenerator _usernameGenerator;
+        public AuthController(AuthDbContext context, IConfiguration config, ITokenService tokenService, IAuthService authService,IUsernameGenerator usernameGenerator)
         {
             _context = context;
             _config = config;
             _tokenService = tokenService;
             _authService = authService;
+            _usernameGenerator = usernameGenerator;
         }
 
         [HttpPost("register")]
@@ -35,11 +37,14 @@ namespace Fitness_App_Auth.API.Controllers
         {
             if (await _context.Users.AnyAsync(u => u.Email == dto.Email))
                 return BadRequest("Email уже занят");
+
+            var username = await _usernameGenerator.GenerateAsync(dto.Email);
+
             var user = new User
             {
                 Email = dto.Email,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-                Username = dto.Username,
+                Username = username,
                 RegistrationDate = DateTime.UtcNow
             };
 
@@ -48,7 +53,6 @@ namespace Fitness_App_Auth.API.Controllers
 
             var (accessToken, refreshToken) = await _authService.GenerateTokensAsync(user);
             return Ok(new { accessToken, refreshToken });
-
         }
 
 
