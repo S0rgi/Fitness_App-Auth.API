@@ -23,7 +23,7 @@ jobs:
       run: dotnet restore
 
     - name: Build the main API project
-      run: dotnet build --no-restore --project Fitness_App-Auth.API/Fitness_App-Auth.API.csproj
+      run: dotnet build --no-restore Fitness_App-Auth.API/Fitness_App-Auth.API.csproj
 
     - name: Run tests
-      run: dotnet test --no-build --verbosity normal --project Fitness_App-Auth.Tests/Fitness_App-Auth.Tests.csproj
+      run: dotnet test --no-build --verbosity normal Fitness_App-Auth.Tests/Fitness_App-Auth.Tests.csproj
