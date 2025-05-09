@@ -50,6 +50,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
+    // API Key
     options.AddSecurityDefinition("ApiKey", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
         Description = "Введите API ключ в заголовке X-API-KEY",
@@ -57,6 +58,17 @@ builder.Services.AddSwaggerGen(options =>
         Name = "X-API-KEY",
         In = Microsoft.OpenApi.Models.ParameterLocation.Header,
         Scheme = "ApiKeyScheme"
+    });
+
+    // Bearer JWT
+    options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Description = "Введите JWT Bearer токен в формате 'Bearer {token}'",
+        Name = "Authorization",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT"
     });
 
     options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
@@ -71,9 +83,21 @@ builder.Services.AddSwaggerGen(options =>
                 }
             },
             new string[] {}
+        },
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
         }
     });
 });
+
 
 // Поддержка кастомного порта (для Fly)
 builder.WebHost.ConfigureKestrel(serverOptions =>
