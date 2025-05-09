@@ -22,8 +22,8 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
 
-    - name: Build
-      run: dotnet build --no-restore
+    - name: Build the main API project
+      run: dotnet build --no-restore --project Fitness_App-Auth.API/Fitness_App-Auth.API.csproj
 
-    - name: Test
-      run: dotnet test --no-build --verbosity normal
+    - name: Run tests
+      run: dotnet test --no-build --verbosity normal --project Fitness_App-Auth.Tests/Fitness_App-Auth.Tests.csproj
