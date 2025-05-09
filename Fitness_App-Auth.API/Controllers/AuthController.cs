@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
 using Fitness_App_Auth.API.Interfaces;
 using Fitness_App_Auth.API.Service;
+using Microsoft.AspNetCore.Authorization;
 namespace Fitness_App_Auth.API.Controllers
 {
     [ApiController]
@@ -65,8 +66,32 @@ namespace Fitness_App_Auth.API.Controllers
 
             var (accessToken, refreshToken) = await _authService.GenerateTokensAsync(user);
             return Ok(new { accessToken, refreshToken });
+        }
+        [Authorize]
+        [HttpPatch("change-username")]
+        public async Task<IActionResult> ChangeUsername([FromBody] ChangeUsernameDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
+            // Получаем ID пользователя из токена
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+                return Unauthorized();
 
+            var user = await _context.Users.FindAsync(Guid.Parse(userId));
+            if (user == null)
+                return Unauthorized();
+
+            // Проверка, занят ли ник
+            var exists = await _context.Users.AnyAsync(u => u.Username == dto.NewUsername);
+            if (exists)
+                return BadRequest("Username занят");
+
+            user.Username = dto.NewUsername;
+            await _context.SaveChangesAsync();
+
+            return Ok("Username изменён");
         }
 
         [HttpPost("logout")]
