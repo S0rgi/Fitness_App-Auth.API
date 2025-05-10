@@ -68,33 +68,7 @@ namespace Fitness_App_Auth.API.Controllers
             var (accessToken, refreshToken) = await _authService.GenerateTokensAsync(user);
             return Ok(new { accessToken, refreshToken });
         }
-        [Authorize]
-        [HttpPatch("change-username")]
-        public async Task<IActionResult> ChangeUsername([FromBody] ChangeUsernameDto dto)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            // Получаем ID пользователя из токена
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (userId == null)
-                return Unauthorized();
-
-            var user = await _context.Users.FindAsync(Guid.Parse(userId));
-            if (user == null)
-                return Unauthorized();
-
-            // Проверка, занят ли ник
-            var exists = await _context.Users.AnyAsync(u => u.Username == dto.NewUsername);
-            if (exists)
-                return BadRequest("Username занят");
-
-            user.Username = dto.NewUsername;
-            await _context.SaveChangesAsync();
-
-            return Ok("Username изменён");
-        }
-
+        
         [HttpPost("logout")]
         public async Task<IActionResult> Logout([FromBody] RefreshDto dto)
         {
@@ -161,24 +135,6 @@ namespace Fitness_App_Auth.API.Controllers
             {
                 return Unauthorized("Invalid token");
             }
-        }
-
-        [HttpDelete("DeleteUser")]
-        public async Task<IActionResult> DeleteUser(string email){
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
-            if (user ==null)
-                return BadRequest("email не найден");
-            _context.Users.Remove(user);
-             await _context.SaveChangesAsync();
-            return Ok("user успешно удалён");
-        }
-        [HttpGet("UserExist")]
-        public async Task<IActionResult> UserExist(string email){
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
-            if (user ==null)
-                return BadRequest("email не найден");
-            else
-                return Ok("email найден");
         }
     }
 }
