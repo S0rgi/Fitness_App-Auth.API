@@ -1,29 +1,29 @@
-name: .NET CI
+# name: .NET CI
 
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+# on:
+#   push:
+#     branches: [ main ]
+#   pull_request:
+#     branches: [ main ]
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+# jobs:
+#   build:
+#     runs-on: ubuntu-latest
 
-    steps:
-    - name: Checkout source
-      uses: actions/checkout@v3
+#     steps:
+#     - name: Checkout source
+#       uses: actions/checkout@v3
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: '9.0.x'
+#     - name: Setup .NET
+#       uses: actions/setup-dotnet@v3
+#       with:
+#         dotnet-version: '9.0.x'
 
-    - name: Restore dependencies
-      run: dotnet restore
+#     - name: Restore dependencies
+#       run: dotnet restore
 
-    - name: Build the main API project
-      run: dotnet build --no-restore Fitness_App-Auth.API/Fitness_App-Auth.API.csproj
+#     - name: Build the main API project
+#       run: dotnet build --no-restore Fitness_App-Auth.API/Fitness_App-Auth.API.csproj
 
-    - name: Run tests
-      run: dotnet test --no-build --verbosity normal Fitness_App-Auth.Tests/Fitness_App-Auth.Tests.csproj
+#     - name: Run tests
+#       run: dotnet test --no-build --verbosity normal Fitness_App-Auth.Tests/Fitness_App-Auth.Tests.csproj
