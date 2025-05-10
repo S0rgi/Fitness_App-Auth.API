@@ -54,7 +54,7 @@ namespace Fitness_App_Auth.API.Controllers
             await _context.SaveChangesAsync();
 
             var (accessToken, refreshToken) = await _authService.GenerateTokensAsync(user);
-            return Ok(new { accessToken, refreshToken });
+            return Ok(new { accessToken, refreshToken,user.Id });
         }
 
 
@@ -66,7 +66,7 @@ namespace Fitness_App_Auth.API.Controllers
                 return Unauthorized("Неверный email или пароль");
 
             var (accessToken, refreshToken) = await _authService.GenerateTokensAsync(user);
-            return Ok(new { accessToken, refreshToken });
+            return Ok(new { accessToken, refreshToken,user.Id });
         }
         
         [HttpPost("logout")]
@@ -106,7 +106,8 @@ namespace Fitness_App_Auth.API.Controllers
             return Ok(new
             {
                 accessToken,
-                refreshToken
+                refreshToken,
+                user.Id
             });
         }
 
