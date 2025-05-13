@@ -1,9 +1,9 @@
-using FitnessApp.Grpc;
+using Fitness_App_Auth.API.Grpc;
 using Grpc.Core;
 using Microsoft.EntityFrameworkCore;
 using Fitness_App_Auth.API.Data;
 public class UserGrpcService : UserService.UserServiceBase
-{
+{   
     private readonly AuthDbContext _context;
 
     public UserGrpcService(AuthDbContext context)

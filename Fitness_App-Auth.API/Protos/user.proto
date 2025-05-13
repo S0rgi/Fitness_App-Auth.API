@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option csharp_namespace = "FitnessApp.Grpc";
+option csharp_namespace = "Fitness_App_Auth.API.Grpc";
 
 package user;
 
