@@ -21,7 +21,7 @@ builder.Configuration
     .SetBasePath(Directory.GetCurrentDirectory())
     .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
     .AddEnvironmentVariables(); // <-- обязательно
-
+builder.Services.AddGrpc();
 // База данных
 builder.Services.AddDbContext<AuthDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("AuthDb")));
@@ -125,4 +125,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapGrpcService<UserGrpcService>();
+app.MapGet("/", () => "Use a gRPC client to communicate");
+
 app.Run();
