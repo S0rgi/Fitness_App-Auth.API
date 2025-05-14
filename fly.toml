@@ -18,10 +18,11 @@ primary_region = 'waw'
 [[services]]
   internal_port = 5001
   protocol = "tcp"
+  processes = ["app"]
 
   [[services.ports]]
-    port = 5001
-    handlers = ["tls", "http2"] # Внешний доступ по gRPC (если нужен)
+    port = 443
+    handlers = ["tls"] #порт для обращения grpc клиентаы
 [[vm]]
   memory = '1gb'
   cpu_kind = 'shared'
