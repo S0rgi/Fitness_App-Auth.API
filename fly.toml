@@ -15,7 +15,13 @@ primary_region = 'waw'
   auto_start_machines = true
   min_machines_running = 0
   processes = ['app']
+[[services]]
+  internal_port = 5001
+  protocol = "tcp"
 
+  [[services.ports]]
+    port = 5001
+    handlers = ["tls", "http2"] # Внешний доступ по gRPC (если нужен)
 [[vm]]
   memory = '1gb'
   cpu_kind = 'shared'
