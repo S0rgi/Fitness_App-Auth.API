@@ -11,6 +11,7 @@ using DotNetEnv;
 using Fitness_App_Auth.API.Interfaces;
 using Fitness_App_Auth.API.Service;
 using Fitness_App_Auth.API.Models;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 // Загрузим .env (только локально)
 DotNetEnv.Env.Load("../.env");
 
@@ -100,10 +101,15 @@ builder.Services.AddSwaggerGen(options =>
 
 
 // Поддержка кастомного порта (для Fly)
-builder.WebHost.ConfigureKestrel(serverOptions =>
+builder.WebHost.ConfigureKestrel(options =>
 {
-    var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-    serverOptions.ListenAnyIP(int.Parse(port));
+    options.ListenAnyIP(8080); // для REST
+
+    options.ListenAnyIP(5001, listen =>
+    {
+        listen.UseHttps(); // включаем HTTPS
+        listen.Protocols = HttpProtocols.Http2;
+    });
 });
 
 var app = builder.Build();
