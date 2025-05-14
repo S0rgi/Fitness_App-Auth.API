@@ -17,12 +17,10 @@ primary_region = 'waw'
   processes = ['app']
 [[services]]
   internal_port = 5001
-  protocol = "tcp"
-  processes = ["app"]
+  protocol = "edge_http"
 
   [[services.ports]]
     port = 443
-    handlers = ["tls"] #порт для обращения grpc клиентаы
 [[vm]]
   memory = '1gb'
   cpu_kind = 'shared'
