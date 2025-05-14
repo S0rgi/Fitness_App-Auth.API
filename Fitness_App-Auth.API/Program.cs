@@ -126,7 +126,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.MapGrpcService<UserGrpcService>();
+app.MapGrpcService<UserGrpcService>().AllowAnonymous();
 app.MapGet("/", () => "Use a gRPC client to communicate");
 
 app.Run();

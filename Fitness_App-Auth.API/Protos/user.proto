@@ -6,10 +6,15 @@ package user;
 
 service UserService {
   rpc GetUserById (UserRequest) returns (UserResponse);
+  rpc ValidateToken (TokenRequest) returns (UserResponse);
 }
 
 message UserRequest {
   string id = 1;
+}
+
+message TokenRequest {
+  string accessToken = 1;
 }
 
 message UserResponse {
@@ -17,3 +22,4 @@ message UserResponse {
   string email = 2;
   string username = 3;
 }
+
