@@ -12,6 +12,7 @@ using Fitness_App_Auth.API.Interfaces;
 using Fitness_App_Auth.API.Service;
 using Fitness_App_Auth.API.Models;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
+
 // Загрузим .env (только локально)
 DotNetEnv.Env.Load("../.env");
 
@@ -23,6 +24,8 @@ builder.Configuration
     .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
     .AddEnvironmentVariables(); // <-- обязательно
 builder.Services.AddGrpc();
+builder.Services.AddGrpcReflection();
+
 // База данных
 builder.Services.AddDbContext<AuthDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("AuthDb")));
@@ -133,5 +136,6 @@ app.MapControllers();
 
 app.MapGrpcService<UserGrpcService>().AllowAnonymous();
 app.MapGet("/", () => "Use a gRPC client to communicate");
+app.MapGrpcReflectionService();
 
 app.Run();
