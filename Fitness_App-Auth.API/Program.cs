@@ -107,7 +107,6 @@ builder.WebHost.ConfigureKestrel(options =>
 
     options.ListenAnyIP(5001, listen =>
     {
-        listen.UseHttps(); // включаем HTTPS
         listen.Protocols = HttpProtocols.Http2;
     });
 });
