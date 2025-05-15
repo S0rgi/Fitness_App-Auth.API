@@ -12,7 +12,7 @@ using Fitness_App_Auth.API.Interfaces;
 using Fitness_App_Auth.API.Service;
 using Fitness_App_Auth.API.Models;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
-
+using Grpc.AspNetCore.Web;
 // Загрузим .env (только локально)
 DotNetEnv.Env.Load("../.env");
 
@@ -143,5 +143,12 @@ app.MapControllers();
 app.MapGrpcService<UserGrpcService>().AllowAnonymous();
 app.MapGet("/", () => "Use a gRPC client to communicate");
 app.MapGrpcReflectionService();
+app.UseRouting();
+app.UseGrpcWeb(); // <--- Обязательно!
 
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapGrpcService<UserGrpcService>()
+             .EnableGrpcWeb(); // <--- Включаем gRPC-Web поддержку
+});
 app.Run();
