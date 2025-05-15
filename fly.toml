@@ -23,7 +23,7 @@ primary_region = 'waw'
     port = 443
 
   [[services.tls_options]]
-    alpn = ["h2"] # обязательно для gRPC
+    alpn = ["h2", "http/1.1"]
 
   [[services.handlers]]
     handler = "tls"
