@@ -12,6 +12,12 @@ public class ApiKeyMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
+         if (context.Request.ContentType?.StartsWith("application/grpc") == true)
+    {
+        await _next(context); // Пропускаем проверку для gRPC
+        return;
+    }
+
         var apiKeyHeader = _configuration["ApiKey:HeaderName"];
         var configuredApiKey = _configuration["ApiKey:Key"];
 
