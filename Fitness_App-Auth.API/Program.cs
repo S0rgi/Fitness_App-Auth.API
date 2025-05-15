@@ -106,13 +106,19 @@ builder.Services.AddSwaggerGen(options =>
 // Поддержка кастомного порта (для Fly)
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.ListenAnyIP(8080); // для REST
+    // REST (HTTP/1.1)
+    options.ListenAnyIP(8080, listen =>
+    {
+        listen.Protocols = HttpProtocols.Http1;
+    });
 
+    // gRPC (HTTP/2)
     options.ListenAnyIP(5001, listen =>
     {
         listen.Protocols = HttpProtocols.Http2;
     });
 });
+
 
 var app = builder.Build();
 
