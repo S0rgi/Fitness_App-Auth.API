@@ -138,17 +138,17 @@ app.UseMiddleware<ApiKeyMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.UseRouting();
+
+app.UseGrpcWeb(); // <-- Важно: до MapGrpcService!
+
 app.MapControllers();
 
-app.MapGrpcService<UserGrpcService>().AllowAnonymous();
+app.MapGrpcService<UserGrpcService>()
+   .EnableGrpcWeb()         // Включаем поддержку gRPC-Web
+   .AllowAnonymous();       // Если нужно разрешить анонимный доступ
+
 app.MapGet("/", () => "Use a gRPC client to communicate");
 app.MapGrpcReflectionService();
-app.UseRouting();
-app.UseGrpcWeb(); // <--- Обязательно!
 
-app.UseEndpoints(endpoints =>
-{
-    endpoints.MapGrpcService<UserGrpcService>()
-             .EnableGrpcWeb(); // <--- Включаем gRPC-Web поддержку
-});
 app.Run();
