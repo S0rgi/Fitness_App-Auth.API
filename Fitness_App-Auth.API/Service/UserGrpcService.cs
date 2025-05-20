@@ -7,6 +7,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authorization;
+using Fitness_App_Auth.API.Models;
 [AllowAnonymous]
 public class UserGrpcService : UserService.UserServiceBase
 {   
@@ -17,7 +18,23 @@ public class UserGrpcService : UserService.UserServiceBase
         _config = config;
         _context = context;
     }
-
+    public override async Task<FriendshipResponse> CheckFriendship(FriendshipRequest request, ServerCallContext context)
+    {
+        var friend = await _context.Users.FirstOrDefaultAsync(u => u.Username ==request.FriendName);
+        if (friend == null)
+        {
+            throw new RpcException(new Status(StatusCode.NotFound, "Friend's name not found"));
+        }
+        bool isFriend = await _context.Friendships.AnyAsync(f =>
+    f.UserId == Guid.Parse(request.UserId) && f.FriendId == friend.Id
+    && _context.Friendships.Any(f2 => f2.UserId == friend.Id && f2.FriendId == Guid.Parse(request.UserId)));
+        if (!isFriend)
+            throw new RpcException(new Status(StatusCode.NotFound, "User is no your friend"));
+        return new FriendshipResponse
+        {
+            FriendId = friend.Id.ToString()
+        };
+    }
     public override async Task<UserResponse> GetUserById(UserRequest request, ServerCallContext context)
     {
         var user = await _context.Users.FindAsync(Guid.Parse(request.Id));

@@ -7,8 +7,15 @@ package user;
 service UserService {
   rpc GetUserById (UserRequest) returns (UserResponse);
   rpc ValidateToken (TokenRequest) returns (UserResponse);
+  rpc CheckFriendship(FriendshipRequest) returns (FriendshipResponse);
 }
-
+message FriendshipRequest{
+  string userId = 1;
+  string friendName = 2;
+}
+message FriendshipResponse{
+    string FriendId =1;
+}
 message UserRequest {
   string id = 1;
 }
