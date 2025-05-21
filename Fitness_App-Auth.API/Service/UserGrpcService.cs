@@ -18,23 +18,32 @@ public class UserGrpcService : UserService.UserServiceBase
         _config = config;
         _context = context;
     }
-    public override async Task<FriendshipResponse> CheckFriendship(FriendshipRequest request, ServerCallContext context)
+public override async Task<FriendshipResponse> CheckFriendship(FriendshipRequest request, ServerCallContext context)
+{
+    if (!Guid.TryParse(request.UserId, out var userId))
+        throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid UserId"));
+
+    var friend = await _context.Users.FirstOrDefaultAsync(u => u.Username == request.FriendName);
+    if (friend == null)
+        throw new RpcException(new Status(StatusCode.NotFound, "Friend's name not found"));
+
+    // Двусторонняя проверка
+    var friendships = await _context.Friendships
+        .Where(f =>
+            (f.UserId == userId && f.FriendId == friend.Id ||
+             f.UserId == friend.Id && f.FriendId == userId) &&
+            f.Status == FriendshipStatus.Accepted)
+        .ToListAsync();
+
+    if (friendships.Count < 2)
+        throw new RpcException(new Status(StatusCode.NotFound, "User is not your friend"));
+
+    return new FriendshipResponse
     {
-        var friend = await _context.Users.FirstOrDefaultAsync(u => u.Username ==request.FriendName);
-        if (friend == null)
-        {
-            throw new RpcException(new Status(StatusCode.NotFound, "Friend's name not found"));
-        }
-        bool isFriend = await _context.Friendships.AnyAsync(f =>
-    f.UserId == Guid.Parse(request.UserId) && f.FriendId == friend.Id
-    && _context.Friendships.Any(f2 => f2.UserId == friend.Id && f2.FriendId == Guid.Parse(request.UserId)));
-        if (!isFriend)
-            throw new RpcException(new Status(StatusCode.NotFound, "User is no your friend"));
-        return new FriendshipResponse
-        {
-            FriendId = friend.Id.ToString()
-        };
-    }
+        FriendId = friend.Id.ToString()
+    };
+}
+
     public override async Task<UserResponse> GetUserById(UserRequest request, ServerCallContext context)
     {
         var user = await _context.Users.FindAsync(Guid.Parse(request.Id));
