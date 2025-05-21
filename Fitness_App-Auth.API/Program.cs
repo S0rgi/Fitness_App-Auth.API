@@ -129,6 +129,7 @@ using ( var scope = app.Services.CreateScope() )
     db.Database.Migrate();
 }
 
+app.UseRouting();
 // Middleware
 app.UseSwagger();
 app.UseSwaggerUI();
@@ -137,8 +138,6 @@ app.UseMiddleware<ApiKeyMiddleware>();
 
 app.UseAuthentication();
 app.UseAuthorization();
-
-app.UseRouting();
 
 app.UseGrpcWeb(); // <-- Важно: до MapGrpcService!
 
