@@ -27,15 +27,11 @@ public override async Task<FriendshipResponse> CheckFriendship(FriendshipRequest
     if (friend == null)
         throw new RpcException(new Status(StatusCode.NotFound, "Friend's name not found"));
 
-    // Двусторонняя проверка
-    var friendships = await _context.Friendships
-        .Where(f =>
-            (f.UserId == userId && f.FriendId == friend.Id ||
-             f.UserId == friend.Id && f.FriendId == userId) &&
-            f.Status == FriendshipStatus.Accepted)
-        .ToListAsync();
-
-    if (friendships.Count < 2)
+    var exists = await _context.Friendships.AnyAsync(f =>
+        (f.UserId == userId && f.FriendId == friend.Id ||
+        f.UserId == friend.Id && f.FriendId == userId) &&
+        f.Status == FriendshipStatus.Accepted);
+    if (!exists)
         throw new RpcException(new Status(StatusCode.NotFound, "User is not your friend"));
 
     return new FriendshipResponse
