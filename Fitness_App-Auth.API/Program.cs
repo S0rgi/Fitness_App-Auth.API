@@ -52,8 +52,10 @@ builder.Services.AddScoped<IUsernameGenerator, UsernameGenerator>();
 
 builder.Services.AddSingleton<MessagePublisher>(sp =>
 {
-    var uri = builder.Configuration.GetConnectionString("RabbitMq");
-    return new MessagePublisher(uri);
+    var uriRabbitmq = builder.Configuration.GetConnectionString("RabbitMq");
+    var pingUrl = builder.Configuration.GetConnectionString("PingNotifyUrl");
+                Console.WriteLine(pingUrl);
+    return new MessagePublisher(uriRabbitmq, pingUrl);
 });
 
 builder.Services.AddControllers();
