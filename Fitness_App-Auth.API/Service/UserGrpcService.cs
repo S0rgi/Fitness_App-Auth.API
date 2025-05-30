@@ -36,7 +36,8 @@ public override async Task<FriendshipResponse> CheckFriendship(FriendshipRequest
 
     return new FriendshipResponse
     {
-        FriendId = friend.Id.ToString()
+        FriendId = friend.Id.ToString(),
+        Email = friend.Email,
     };
 }
 

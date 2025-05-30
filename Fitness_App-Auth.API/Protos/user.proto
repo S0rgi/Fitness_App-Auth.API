@@ -15,6 +15,7 @@ message FriendshipRequest{
 }
 message FriendshipResponse{
     string FriendId =1;
+    string Email = 2;
 }
 message UserRequest {
   string id = 1;
