@@ -50,6 +50,12 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUsernameGenerator, UsernameGenerator>();
 
+builder.Services.AddSingleton<MessagePublisher>(sp =>
+{
+    var uri = builder.Configuration.GetConnectionString("RabbitMq");
+    return new MessagePublisher(uri);
+});
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>

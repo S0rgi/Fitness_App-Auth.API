@@ -13,6 +13,8 @@ using Fitness_App_Auth.API.Interfaces;
 using Fitness_App_Auth.API.Service;
 using Microsoft.AspNetCore.Authorization;
 using System.Threading.Tasks;
+using Fitness_App_Auth.API.Service;
+using System.Text.Json;
 namespace Fitness_App_Auth.API.Controllers;
 [ApiController]
 [Route("api/friends")]
@@ -20,9 +22,12 @@ public class FriendController : ControllerBase
 {
     private readonly AuthDbContext _context;
 
-    public FriendController(AuthDbContext context)
+    private readonly MessagePublisher _publisher;
+
+    public FriendController( AuthDbContext context, MessagePublisher publisher)
     {
         _context = context;
+        _publisher = publisher;
     }
 
     [Authorize]
@@ -31,7 +36,9 @@ public class FriendController : ControllerBase
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
+        var user = await _context.Users.FindAsync(userId);
         var friend = await _context.Users.FirstOrDefaultAsync(u => u.Username == friendUsername);
+
         if (friend == null)
             return NotFound("Пользователь с таким именем не найден.");
 
@@ -55,8 +62,18 @@ public class FriendController : ControllerBase
         _context.Friendships.Add(friendship);
         await _context.SaveChangesAsync();
 
+        // Отправка уведомления
+        var notification = new NotificationMessage
+        {
+            Type = "friend_invite",
+            SenderName = user?.Username ?? "Кто-то",
+            RecipientEmail = friend.Email
+        };
+        await _publisher.PublishAsync(JsonSerializer.Serialize(notification));
+
         return Ok("Заявка отправлена.");
     }
+
 
 
     [Authorize]
@@ -64,6 +81,7 @@ public class FriendController : ControllerBase
     public async Task<IActionResult> RespondToFriendRequest(Guid friendshipId, [FromQuery] bool accept)
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
         var friendship = await _context.Friendships
             .Include(f => f.Friend)
             .Include(f => f.User)
@@ -75,8 +93,19 @@ public class FriendController : ControllerBase
         friendship.Status = accept ? FriendshipStatus.Accepted : FriendshipStatus.Rejected;
         await _context.SaveChangesAsync();
 
+        // Уведомление отправителю
+        var notification = new NotificationMessage
+        {
+            Type = "friend_response",
+            SenderName = friendship.Friend.Username,
+            RecipientEmail = friendship.User.Email,
+            Action = friendship.Status.ToString()
+        };
+        await _publisher.PublishAsync(JsonSerializer.Serialize(notification));
+
         return Ok($"Заявка {(accept ? "принята" : "отклонена")}.");
     }
+
 
     [Authorize]
     [HttpGet("pending")]
