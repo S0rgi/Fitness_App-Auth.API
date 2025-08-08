@@ -137,5 +137,11 @@ namespace Fitness_App_Auth.API.Controllers
                 return Unauthorized("Invalid token");
             }
         }
+        [HttpGet("email_code/{email}")]
+        public IActionResult GetEmailCode(string email)
+        {
+            Random rnd = new Random();
+            return Ok(rnd.Next(10001, 99999));
+         }
     }
 }
