@@ -13,6 +13,7 @@ using Fitness_App_Auth.API.Interfaces;
 using Fitness_App_Auth.API.Service;
 using Microsoft.AspNetCore.Authorization;
 using System.Threading.Tasks;
+using System.Text.Json;
 namespace Fitness_App_Auth.API.Controllers
 {
     [ApiController]
@@ -21,17 +22,19 @@ namespace Fitness_App_Auth.API.Controllers
     {
         private readonly AuthDbContext _context;
         private readonly IConfiguration _config;
+        private readonly MessagePublisher _publisher;
 
         private readonly ITokenService _tokenService;
         private readonly IAuthService _authService;
         IUsernameGenerator _usernameGenerator;
-        public AuthController(AuthDbContext context, IConfiguration config, ITokenService tokenService, IAuthService authService,IUsernameGenerator usernameGenerator)
+        public AuthController(AuthDbContext context, IConfiguration config, ITokenService tokenService, IAuthService authService, IUsernameGenerator usernameGenerator,MessagePublisher publisher)
         {
             _context = context;
             _config = config;
             _tokenService = tokenService;
             _authService = authService;
             _usernameGenerator = usernameGenerator;
+            _publisher = publisher;
         }
 
         [HttpPost("register")]
@@ -141,7 +144,16 @@ namespace Fitness_App_Auth.API.Controllers
         public IActionResult GetEmailCode(string email)
         {
             Random rnd = new Random();
-            return Ok(rnd.Next(10001, 99999));
+            int code = rnd.Next(10001, 99999);
+            var notification = new NotificationMessage
+            {
+                Type = "code",
+                Action=code.ToString(),
+                SenderName = "none",
+                RecipientEmail = email
+            };
+            _publisher.PublishAsync(JsonSerializer.Serialize(notification), "code");
+            return Ok(code);
          }
     }
 }
