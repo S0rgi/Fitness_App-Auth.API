@@ -141,8 +141,10 @@ namespace Fitness_App_Auth.API.Controllers
             }
         }
         [HttpGet("email_code/{email}")]
-        public IActionResult GetEmailCode(string email)
+        public async Task<IActionResult> GetEmailCode(string email)
         {
+            if (await _context.Users.AnyAsync(u => u.Email == email))
+                return BadRequest("Email уже занят");
             Random rnd = new Random();
             int code = rnd.Next(10001, 99999);
             var notification = new NotificationMessage
