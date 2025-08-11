@@ -2,7 +2,7 @@
 
 namespace Fitness_App_Auth.API.Interfaces
 {
-    public interface IAuthService
+    public interface IUserAuthenticationService
     {
         Task<(string accessToken, string refreshToken)> GenerateTokensAsync(User user);
     }

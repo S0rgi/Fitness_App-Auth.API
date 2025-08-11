@@ -23,9 +23,9 @@ namespace Fitness_App_Auth.API.Controllers
         private readonly IConfiguration _config;
 
         private readonly ITokenService _tokenService;
-        private readonly IAuthService _authService;
+        private readonly IUserAuthenticationService _authService;
         IUsernameGenerator _usernameGenerator;
-        public UserController(AuthDbContext context, IConfiguration config, ITokenService tokenService, IAuthService authService,IUsernameGenerator usernameGenerator)
+        public UserController(AuthDbContext context, IConfiguration config, ITokenService tokenService, IUserAuthenticationService authService,IUsernameGenerator usernameGenerator)
         {
             _context = context;
             _config = config;

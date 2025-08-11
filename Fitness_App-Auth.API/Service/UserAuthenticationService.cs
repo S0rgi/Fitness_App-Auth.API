@@ -6,12 +6,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 namespace Fitness_App_Auth.API.Service
 {
-    public class AuthService : IAuthService
+    public class UserAuthenticationService : IUserAuthenticationService
     {
         private readonly ITokenService _tokenService;
         private readonly AuthDbContext _context;
         private readonly JwtOptions _jwtOptions;
-        public AuthService(ITokenService tokenService, AuthDbContext context,IOptions<JwtOptions> jwtOptions)
+        public UserAuthenticationService(ITokenService tokenService, AuthDbContext context,IOptions<JwtOptions> jwtOptions)
         {
             _tokenService = tokenService;
             _context = context;
