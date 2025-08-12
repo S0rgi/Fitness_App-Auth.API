@@ -1,7 +1,8 @@
+using Fitness_App_Auth.API.Interfaces;
 using RabbitMQ.Client;
 using System.Text;
 namespace Fitness_App_Auth.API.Service;
-public class MessagePublisher
+public class MessagePublisher:INotificationPublisher
 {
     private readonly string _connectionString;
     private readonly string _pingUrl;
