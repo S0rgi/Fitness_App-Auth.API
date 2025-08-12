@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Fitness_App_Auth.API.Interfaces;
+using Fitness_App_Auth.API.Dtos;
 
 namespace Fitness_App_Auth.API.Controllers
 {
@@ -25,7 +26,7 @@ namespace Fitness_App_Auth.API.Controllers
 
         [HttpPost("login")]
         [ProducesResponseType(typeof(TokenPair), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(string), StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             var result = await _authService.LoginAsync(request);
@@ -35,9 +36,9 @@ namespace Fitness_App_Auth.API.Controllers
         [HttpPost("refresh")]
         [ProducesResponseType(typeof(TokenPair), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(string), StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> Refresh([FromBody] string refreshToken)
+        public async Task<IActionResult> Refresh([FromBody] RefreshDto dto)
         {
-            var tokens = await _authService.RefreshTokenAsync(refreshToken);
+            var tokens = await _authService.RefreshTokenAsync(dto.RefreshToken);
             return tokens != null ? Ok(tokens) : Unauthorized("Invalid refresh token");
         }
 
@@ -50,9 +51,9 @@ namespace Fitness_App_Auth.API.Controllers
         }
 
         [HttpPost("validate")]
-        public async Task<IActionResult> Validate([FromBody] string token)
+        public async Task<IActionResult> Validate([FromBody] TokenValidationDto dto)
         {
-            var result = await _authService.ValidateTokenAsync(token);
+            var result = await _authService.ValidateTokenAsync(dto.Token);
             return result.IsValid ? Ok() : Unauthorized(result.Reason);
         }
 

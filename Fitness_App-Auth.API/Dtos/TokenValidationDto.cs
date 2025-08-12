@@ -1,4 +1,7 @@
-public class TokenValidationDto
+namespace Fitness_App_Auth.API.Dtos
 {
-    public string Token { get; set; }
+    public class TokenValidationDto
+    {
+        public string Token { get; set; }
+    }
 }

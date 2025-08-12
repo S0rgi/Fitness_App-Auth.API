@@ -20,13 +20,15 @@ namespace Fitness_App_Auth.API.Service
         private readonly INotificationPublisher _publisher;
         private readonly IConfiguration _config;
         private readonly IUserAuthenticationService _tokenGen;
+        private readonly ITokenService _tokenService;
 
-        public AuthService(AuthDbContext context, INotificationPublisher publisher, IConfiguration config, IUserAuthenticationService tokenGen)
+        public AuthService(AuthDbContext context, INotificationPublisher publisher, IConfiguration config, IUserAuthenticationService tokenGen, ITokenService tokenService)
         {
             _context = context;
             _publisher = publisher;
             _config = config;
             _tokenGen = tokenGen;
+            _tokenService = tokenService;
         }
 
         public async Task<AuthResult> RegisterAsync(RegisterRequest request)
@@ -95,20 +97,9 @@ namespace Fitness_App_Auth.API.Service
 
         public Task<Interfaces.TokenValidationResult> ValidateTokenAsync(string token)
         {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.UTF8.GetBytes(_config["Jwt:Key"]);
-
             try
             {
-                tokenHandler.ValidateToken(token, new TokenValidationParameters
-                {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(key),
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
-                    ClockSkew = TimeSpan.Zero
-                }, out _);
-
+                _ = _tokenService.ValidateAccessToken(token);
                 return Task.FromResult(new Interfaces.TokenValidationResult(true, null));
             }
             catch (Exception ex)

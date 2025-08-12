@@ -8,6 +8,7 @@ namespace Fitness_App_Auth.API.Interfaces
         string GenerateAccessToken(ClaimsIdentity identity);
         string GenerateRefreshToken();
         string GenerateJwtToken(User user);
+        ClaimsPrincipal ValidateAccessToken(string token);
     }
 
 }

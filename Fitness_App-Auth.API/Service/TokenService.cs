@@ -67,6 +67,25 @@ namespace Fitness_App_Auth.API.Service
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+
+        public ClaimsPrincipal ValidateAccessToken(string token)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.UTF8.GetBytes(_config["Jwt:SecretKey"]);
+
+            var validationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(key),
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidIssuer = _config["Jwt:Issuer"],
+                ValidAudience = _config["Jwt:Audience"],
+                ClockSkew = TimeSpan.Zero
+            };
+
+            return tokenHandler.ValidateToken(token, validationParameters, out _);
+        }
     }
 
 }

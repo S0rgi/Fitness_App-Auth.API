@@ -1,19 +1,10 @@
 using Fitness_App_Auth.API.Data;
 using Fitness_App_Auth.API.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Text;
-using Fitness_App_Auth.API.Dtos;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Cryptography;
 using Fitness_App_Auth.API.Interfaces;
-using Fitness_App_Auth.API.Service;
 using Microsoft.AspNetCore.Authorization;
-using System.Threading.Tasks;
-using Fitness_App_Auth.API.Service;
 using System.Text.Json;
 namespace Fitness_App_Auth.API.Controllers;
 [ApiController]
@@ -22,9 +13,9 @@ public class FriendController : ControllerBase
 {
     private readonly AuthDbContext _context;
 
-    private readonly MessagePublisher _publisher;
+    private readonly INotificationPublisher _publisher;
 
-    public FriendController( AuthDbContext context, MessagePublisher publisher)
+    public FriendController( AuthDbContext context, INotificationPublisher publisher)
     {
         _context = context;
         _publisher = publisher;

@@ -1,18 +1,10 @@
 using Fitness_App_Auth.API.Data;
-using Fitness_App_Auth.API.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Text;
 using Fitness_App_Auth.API.Dtos;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Cryptography;
 using Fitness_App_Auth.API.Interfaces;
-using Fitness_App_Auth.API.Service;
 using Microsoft.AspNetCore.Authorization;
-using System.Threading.Tasks;
 namespace Fitness_App_Auth.API.Controllers
 {
     [ApiController]
