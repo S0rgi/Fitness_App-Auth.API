@@ -5,6 +5,7 @@ namespace Fitness_App_Auth.API.Controllers
 {
     [ApiController]
     [Route("api/auth")]
+    [Produces("application/json")]
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
@@ -14,6 +15,8 @@ namespace Fitness_App_Auth.API.Controllers
         }
 
         [HttpPost("register")]
+        [ProducesResponseType(typeof(TokenPair), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
             var result = await _authService.RegisterAsync(request);
@@ -21,6 +24,8 @@ namespace Fitness_App_Auth.API.Controllers
         }
 
         [HttpPost("login")]
+        [ProducesResponseType(typeof(TokenPair), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             var result = await _authService.LoginAsync(request);
@@ -28,6 +33,8 @@ namespace Fitness_App_Auth.API.Controllers
         }
 
         [HttpPost("refresh")]
+        [ProducesResponseType(typeof(TokenPair), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(string), StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> Refresh([FromBody] string refreshToken)
         {
             var tokens = await _authService.RefreshTokenAsync(refreshToken);
@@ -35,6 +42,7 @@ namespace Fitness_App_Auth.API.Controllers
         }
 
         [HttpDelete("logout")]
+        [ProducesResponseType(typeof(void), StatusCodes.Status204NoContent)]
         public async Task<IActionResult> Logout([FromBody] string refreshToken)
         {
             await _authService.LogoutAsync(refreshToken);
@@ -49,7 +57,9 @@ namespace Fitness_App_Auth.API.Controllers
         }
 
         [HttpGet("email_code/{email}")]
-        public async Task<IActionResult> SendEmailCode( string email)
+        [ProducesResponseType(typeof(int), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> SendEmailCode(string email)
         {
 
             EmailCodeResult res = await _authService.SendEmailCodeAsync(email);
