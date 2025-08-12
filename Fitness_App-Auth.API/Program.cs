@@ -25,10 +25,18 @@ builder.Configuration
     .AddEnvironmentVariables(); // <-- обязательно
 builder.Services.AddGrpc();
 builder.Services.AddGrpcReflection();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddSingleton<INotificationPublisher>(sp =>
+{
+    var uriRabbitmq = builder.Configuration.GetConnectionString("RabbitMq");
+    var pingUrl = builder.Configuration.GetConnectionString("PingNotifyUrl");
+                Console.WriteLine(pingUrl);
+    return new MessagePublisher(uriRabbitmq, pingUrl);
+});
 
-// База данных
 builder.Services.AddDbContext<AuthDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("AuthDb")));
+builder.Services.AddScoped<IUserAuthenticationService, UserAuthenticationService>();
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 // JWT Аутентификация
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

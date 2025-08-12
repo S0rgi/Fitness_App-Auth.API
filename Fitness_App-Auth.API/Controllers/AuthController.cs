@@ -1,161 +1,61 @@
-﻿using Fitness_App_Auth.API.Data;
-using Fitness_App_Auth.API.Models;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using Fitness_App_Auth.API.Dtos;
-using Microsoft.EntityFrameworkCore;
-using System.Security.Cryptography;
+﻿using Microsoft.AspNetCore.Mvc;
 using Fitness_App_Auth.API.Interfaces;
-using Fitness_App_Auth.API.Service;
-using Microsoft.AspNetCore.Authorization;
-using System.Threading.Tasks;
-using System.Text.Json;
+
 namespace Fitness_App_Auth.API.Controllers
 {
     [ApiController]
     [Route("api/auth")]
     public class AuthController : ControllerBase
     {
-        private readonly AuthDbContext _context;
-        private readonly IConfiguration _config;
-        private readonly MessagePublisher _publisher;
-
-        private readonly ITokenService _tokenService;
-        private readonly IUserAuthenticationService _authService;
-        IUsernameGenerator _usernameGenerator;
-        public AuthController(AuthDbContext context, IConfiguration config, ITokenService tokenService, IUserAuthenticationService authService, IUsernameGenerator usernameGenerator,MessagePublisher publisher)
+        private readonly IAuthService _authService;
+        public AuthController(IAuthService authService)
         {
-            _context = context;
-            _config = config;
-            _tokenService = tokenService;
             _authService = authService;
-            _usernameGenerator = usernameGenerator;
-            _publisher = publisher;
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterDto dto)
+        public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
-            if (await _context.Users.AnyAsync(u => u.Email == dto.Email))
-                return BadRequest("Email уже занят");
-
-            var username = await _usernameGenerator.GenerateAsync(dto.Email);
-
-            var user = new User
-            {
-                Email = dto.Email,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-                Username = username,
-                RegistrationDate = DateTime.UtcNow
-            };
-
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-
-            var (accessToken, refreshToken) = await _authService.GenerateTokensAsync(user);
-            return Ok(new { accessToken, refreshToken,user.Id });
+            var result = await _authService.RegisterAsync(request);
+            return result.Success ? Ok(result.Tokens) : BadRequest(result.ErrorMessage);
         }
-
 
         [HttpPost("login")]
-        public async Task<IActionResult> LoginAsync([FromBody] LoginDto dto)
+        public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
-            if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
-                return Unauthorized("Неверный email или пароль");
-
-            var (accessToken, refreshToken) = await _authService.GenerateTokensAsync(user);
-            return Ok(new { accessToken, refreshToken,user.Id });
+            var result = await _authService.LoginAsync(request);
+            return result.Success ? Ok(result.Tokens) : Unauthorized(result.ErrorMessage);
         }
-        
-        [HttpPost("logout")]
-        public async Task<IActionResult> Logout([FromBody] RefreshDto dto)
-        {
-            var token = await _context.RefreshTokens.FirstOrDefaultAsync(r => r.Token == dto.RefreshToken);
-            if (token == null) return NotFound("Refresh token not found");
-
-            token.IsRevoked = true;
-            await _context.SaveChangesAsync();
-
-            return Ok("Logged out successfully");
-        }
-
 
         [HttpPost("refresh")]
-        public async Task<IActionResult> Refresh([FromBody] RefreshDto dto)
+        public async Task<IActionResult> Refresh([FromBody] string refreshToken)
         {
-            var oldToken = await _context.RefreshTokens
-                .FirstOrDefaultAsync(r => r.Token == dto.RefreshToken);
+            var tokens = await _authService.RefreshTokenAsync(refreshToken);
+            return tokens != null ? Ok(tokens) : Unauthorized("Invalid refresh token");
+        }
 
-            if (oldToken == null || oldToken.IsRevoked || oldToken.ExpiresAt < DateTime.UtcNow)
-                return Unauthorized("Invalid refresh token");
-
-            var user = await _context.Users.FindAsync(oldToken.UserId);
-            if (user == null)
-                return Unauthorized("User not found");
-
-            // Отзываем старый токен
-            oldToken.IsRevoked = true;
-
-            // Генерируем новую пару токенов через AuthService
-            var (accessToken, refreshToken) = await _authService.GenerateTokensAsync(user);
-
-            await _context.SaveChangesAsync();
-
-            return Ok(new
-            {
-                accessToken,
-                refreshToken,
-                user.Id
-            });
+        [HttpDelete("logout")]
+        public async Task<IActionResult> Logout([FromBody] string refreshToken)
+        {
+            await _authService.LogoutAsync(refreshToken);
+            return NoContent();
         }
 
         [HttpPost("validate")]
-        public IActionResult ValidateToken([FromBody] TokenValidationDto dto)
+        public async Task<IActionResult> Validate([FromBody] string token)
         {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.UTF8.GetBytes(_config["Jwt:SecretKey"]);
-
-            try
-            {
-                tokenHandler.ValidateToken(dto.Token, new TokenValidationParameters
-                {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(key),
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidIssuer = _config["Jwt:Issuer"],
-                    ValidAudience = _config["Jwt:Audience"],
-                    ClockSkew = TimeSpan.Zero
-                }, out SecurityToken validatedToken);
-
-                return Ok("Valid token");
-            }
-            catch
-            {
-                return Unauthorized("Invalid token");
-            }
+            var result = await _authService.ValidateTokenAsync(token);
+            return result.IsValid ? Ok() : Unauthorized(result.Reason);
         }
+
         [HttpGet("email_code/{email}")]
-        public async Task<IActionResult> GetEmailCode(string email)
+        public async Task<IActionResult> SendEmailCode( string email)
         {
-            if (await _context.Users.AnyAsync(u => u.Email == email))
-                return BadRequest("Email уже занят");
-            Random rnd = new Random();
-            int code = rnd.Next(10001, 99999);
-            var notification = new NotificationMessage
-            {
-                Type = "code",
-                Action=code.ToString(),
-                SenderName = "none",
-                RecipientEmail = email
-            };
-            _publisher.PublishAsync(JsonSerializer.Serialize(notification), "code");
-            return Ok(code);
-         }
+
+            EmailCodeResult res = await _authService.SendEmailCodeAsync(email);
+            if (res.IsValid)
+                return Ok(res.code);
+            return BadRequest("Email уже занят");
+        }
     }
 }

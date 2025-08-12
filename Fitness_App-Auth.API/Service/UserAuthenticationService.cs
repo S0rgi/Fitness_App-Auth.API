@@ -18,7 +18,7 @@ namespace Fitness_App_Auth.API.Service
                         _jwtOptions = jwtOptions.Value;
         }
 
-        public async Task<(string accessToken, string refreshToken)> GenerateTokensAsync(User user)
+        public async Task<TokenPair?> GenerateTokensAsync(User user)
         {
             var identity = new ClaimsIdentity(new[]
             {
@@ -38,7 +38,7 @@ namespace Fitness_App_Auth.API.Service
 
             await _context.SaveChangesAsync();
 
-            return (accessToken, refreshToken);
+            return new TokenPair(accessToken, refreshToken);
         }
     }
 }
