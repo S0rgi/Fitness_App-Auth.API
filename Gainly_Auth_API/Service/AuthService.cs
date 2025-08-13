@@ -45,7 +45,8 @@ namespace Gainly_Auth_API.Service
             {
                 Email = request.Email,
                 Username = await _usernameGenerator.GenerateAsync(request.Email),
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password)
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
+                RegistrationDate = DateTime.UtcNow
             };
 
             await _users.AddAsync(user, cancellationToken);
