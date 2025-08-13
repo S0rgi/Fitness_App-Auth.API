@@ -16,20 +16,21 @@ namespace Gainly_Auth_API.Service.Repositories
             _context = context;
         }
 
-        public Task<bool> ExistsByEmailAsync(string email) => _context.Users.AnyAsync(u => u.Email == email);
-        public Task<bool> ExistsByUsernameAsync(string username) => _context.Users.AnyAsync(u => u.Username == username);
-        public Task<User?> FindByEmailAsync(string email) => _context.Users.FirstOrDefaultAsync(u => u.Email == email);
-        public Task<User?> FindByIdAsync(Guid id) => _context.Users.FindAsync(id).AsTask();
-        public async Task AddAsync(User user)
+        public Task<bool> ExistsByEmailAsync(string email, CancellationToken ct = default) => _context.Users.AnyAsync(u => u.Email == email, ct);
+        public Task<bool> ExistsByUsernameAsync(string username, CancellationToken ct = default) => _context.Users.AnyAsync(u => u.Username == username, ct);
+        public Task<User?> FindByEmailAsync(string email, CancellationToken ct = default) => _context.Users.FirstOrDefaultAsync(u => u.Email == email, ct);
+        public Task<User?> FindByIdAsync(Guid id, CancellationToken ct = default) => _context.Users.FindAsync([id], ct).AsTask();
+        public Task<User?> FindByUsernameAsync(string username, CancellationToken ct = default) => _context.Users.FirstOrDefaultAsync(u => u.Username == username, ct);
+        public async Task AddAsync(User user, CancellationToken ct = default)
         {
             await _context.Users.AddAsync(user);
         }
-        public Task RemoveAsync(User user)
+        public Task RemoveAsync(User user, CancellationToken ct = default)
         {
             _context.Users.Remove(user);
             return Task.CompletedTask;
         }
-        public Task SaveChangesAsync() => _context.SaveChangesAsync();
+        public Task SaveChangesAsync(CancellationToken ct = default) => _context.SaveChangesAsync(ct);
     }
 }
 

@@ -6,9 +6,9 @@ namespace Gainly_Auth_API.Interfaces
 {
     public interface IRefreshTokenRepository
     {
-        Task<RefreshToken?> FindByTokenAsync(string token);
-        Task AddAsync(RefreshToken token);
-        Task SaveChangesAsync();
+        Task<RefreshToken?> FindByTokenAsync(string token, CancellationToken ct = default);
+        Task AddAsync(RefreshToken token, CancellationToken ct = default);
+        Task SaveChangesAsync(CancellationToken ct = default);
     }
 }
 
