@@ -11,19 +11,10 @@ namespace Fitness_App_Auth.API.Controllers
     [Route("api/user")]
     public class UserController : ControllerBase
     {
-        private readonly AuthDbContext _context;
-        private readonly IConfiguration _config;
-
-        private readonly ITokenService _tokenService;
-        private readonly IUserAuthenticationService _authService;
-        IUsernameGenerator _usernameGenerator;
-        public UserController(AuthDbContext context, IConfiguration config, ITokenService tokenService, IUserAuthenticationService authService,IUsernameGenerator usernameGenerator)
+        private readonly IUserService _userService;
+        public UserController(IUserService userService)
         {
-            _context = context;
-            _config = config;
-            _tokenService = tokenService;
-            _authService = authService;
-            _usernameGenerator = usernameGenerator;
+            _userService = userService;
         }
         [Authorize]
         [HttpPatch("change-username")]
@@ -37,37 +28,29 @@ namespace Fitness_App_Auth.API.Controllers
             if (userId == null)
                 return Unauthorized();
 
-            var user = await _context.Users.FindAsync(Guid.Parse(userId));
-            if (user == null)
-                return Unauthorized();
-
-            // Проверка, занят ли ник
-            var exists = await _context.Users.AnyAsync(u => u.Username == dto.NewUsername);
-            if (exists)
-                return BadRequest("Username занят");
-
-            user.Username = dto.NewUsername;
-            await _context.SaveChangesAsync();
-
-            return Ok("Username изменён");
+            var result = await _userService.ChangeUsernameAsync(Guid.Parse(userId), dto.NewUsername);
+            return result switch
+            {
+                ChangeUsernameResult.Success => Ok("Username изменён"),
+                ChangeUsernameResult.UserNotFound => Unauthorized(),
+                ChangeUsernameResult.UsernameTaken => BadRequest("Username занят"),
+                _ => StatusCode(500)
+            };
         }
         
         [HttpDelete("DeleteUser")]
         public async Task<IActionResult> DeleteUser(string email){
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
-            if (user ==null)
+            var deleted = await _userService.DeleteUserByEmailAsync(email);
+            if (!deleted)
                 return BadRequest("email не найден");
-            _context.Users.Remove(user);
-             await _context.SaveChangesAsync();
             return Ok("user успешно удалён");
         }
         [HttpGet("UserExist")]
         public async Task<IActionResult> UserExist(string email){
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
-            if (user ==null)
+            var exists = await _userService.UserExistsAsync(email);
+            if (!exists)
                 return BadRequest("email не найден");
-            else
-                return Ok("email найден");
+            return Ok("email найден");
         }
 
     }
