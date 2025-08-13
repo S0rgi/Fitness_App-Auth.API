@@ -36,7 +36,7 @@ namespace Fitness_App_Auth.API.Interfaces
         Task<EmailCodeResult> SendEmailCodeAsync(string email);
     }
 
-    public record RegisterRequest(string Email, string Username, string Password);
+    public record RegisterRequest(string Email, string Password);
     public record LoginRequest(string Email, string Password);
     public record TokenPair(string AccessToken, string RefreshToken);
     public record AuthResult(bool Success, string? ErrorMessage, TokenPair? Tokens);
