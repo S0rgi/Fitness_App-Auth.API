@@ -6,6 +6,7 @@ using System.Text;
 using Gainly_Auth_API.Secure;
 using Gainly_Auth_API.Interfaces;
 using Gainly_Auth_API.Service;
+using Gainly_Auth_API.Service.Repositories;
 using Gainly_Auth_API.Models;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 // Загрузим .env (только локально)
@@ -52,6 +53,9 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IUserAuthenticationService, UserAuthenticationService>();
 builder.Services.AddScoped<IUsernameGenerator, UsernameGenerator>();
 builder.Services.AddScoped<IFriendshipService, FriendshipService>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+builder.Services.AddScoped<IFriendshipRepository, FriendshipRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 
 builder.Services.AddControllers();

@@ -10,22 +10,24 @@ public class FriendshipService : IFriendshipService
 {
     private readonly AuthDbContext _context;
     private readonly INotificationPublisher _publisher;
-    public FriendshipService(AuthDbContext context, INotificationPublisher publisher)
+    private readonly IUserRepository _users;
+    private readonly IFriendshipRepository _friendships;
+    public FriendshipService(AuthDbContext context, INotificationPublisher publisher, IUserRepository users, IFriendshipRepository friendships)
     {
         _context = context;
         _publisher = publisher;
+        _users = users;
+        _friendships = friendships;
     }
 
     public async Task<(Friendship friendship, User sender, User friend)?> SendFriendRequestByUsernameAsync(Guid senderId, string friendUsername)
     {
-        var sender = await _context.Users.FindAsync(senderId);
+        var sender = await _users.FindByIdAsync(senderId);
         var friend = await _context.Users.FirstOrDefaultAsync(u => u.Username == friendUsername);
         if (friend == null || sender == null || friend.Id == senderId)
             return null;
 
-        var exists = await _context.Friendships.AnyAsync(f =>
-            (f.UserId == senderId && f.FriendId == friend.Id) ||
-            (f.UserId == friend.Id && f.FriendId == senderId));
+        var exists = await _friendships.FriendshipExistsAsync(senderId, friend.Id);
         if (exists)
             return null;
 
@@ -35,8 +37,8 @@ public class FriendshipService : IFriendshipService
             FriendId = friend.Id,
             Status = FriendshipStatus.Pending
         };
-        _context.Friendships.Add(friendship);
-        await _context.SaveChangesAsync();
+        await _friendships.AddAsync(friendship);
+        await _friendships.SaveChangesAsync();
 
         var notification = new NotificationMessage
         {
@@ -51,15 +53,12 @@ public class FriendshipService : IFriendshipService
 
     public async Task<(Friendship friendship, User sender, User friend)?> RespondToFriendRequestAsync(Guid friendshipId, Guid userId, bool accept)
     {
-        var friendship = await _context.Friendships
-            .Include(f => f.Friend)
-            .Include(f => f.User)
-            .FirstOrDefaultAsync(f => f.Id == friendshipId);
+        var friendship = await _friendships.FindByIdAsync(friendshipId);
         if (friendship == null || friendship.FriendId != userId)
             return null;
 
         friendship.Status = accept ? FriendshipStatus.Accepted : FriendshipStatus.Rejected;
-        await _context.SaveChangesAsync();
+        await _friendships.SaveChangesAsync();
 
         var notification = new NotificationMessage
         {
@@ -75,22 +74,12 @@ public class FriendshipService : IFriendshipService
 
     public async Task<IReadOnlyList<object>> GetPendingRequestsAsync(Guid userId)
     {
-        var pending = await _context.Friendships
-            .Include(f => f.User)
-            .Where(f => f.FriendId == userId && f.Status == FriendshipStatus.Pending)
-            .Select(f => new { f.Id, FromUserId = f.UserId, FromUsername = f.User.Username })
-            .ToListAsync();
-        return pending;
+        return await _friendships.GetPendingRequestsAsync(userId);
     }
 
     public async Task<IReadOnlyList<object>> GetFriendsAsync(Guid userId)
     {
-        var friends = await _context.Friendships
-            .Where(f => (f.UserId == userId || f.FriendId == userId) && f.Status == FriendshipStatus.Accepted)
-            .Select(f => f.UserId == userId ? f.Friend : f.User)
-            .Select(u => new { u.Id, u.Username, u.Email })
-            .ToListAsync();
-        return friends;
+        return await _friendships.GetFriendsAsync(userId);
     }
 
     public async Task<bool> RemoveFriendAsync(Guid userId, string friendUsername)
@@ -103,8 +92,8 @@ public class FriendshipService : IFriendshipService
             (f.UserId == friend.Id && f.FriendId == userId && f.Status == FriendshipStatus.Accepted));
         if (friendship == null) return false;
 
-        _context.Friendships.Remove(friendship);
-        await _context.SaveChangesAsync();
+        await _friendships.RemoveAsync(friendship);
+        await _friendships.SaveChangesAsync();
         return true;
     }
 }

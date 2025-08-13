@@ -17,13 +17,15 @@ namespace Gainly_Auth_API.Service
     public class AuthService : IAuthService
     {
         private readonly AuthDbContext _context;
+        private readonly IUserRepository _users;
+        private readonly IRefreshTokenRepository _refreshTokens;
         private readonly INotificationPublisher _publisher;
         private readonly IConfiguration _config;
         private readonly IUserAuthenticationService _tokenGen;
         private readonly ITokenService _tokenService;
         private readonly IUsernameGenerator _usernameGenerator;
 
-        public AuthService(AuthDbContext context, INotificationPublisher publisher, IConfiguration config, IUserAuthenticationService tokenGen, ITokenService tokenService, IUsernameGenerator usernameGenerator)
+        public AuthService(AuthDbContext context, INotificationPublisher publisher, IConfiguration config, IUserAuthenticationService tokenGen, ITokenService tokenService, IUsernameGenerator usernameGenerator, IUserRepository users, IRefreshTokenRepository refreshTokens)
         {
             _context = context;
             _publisher = publisher;
@@ -31,11 +33,13 @@ namespace Gainly_Auth_API.Service
             _tokenGen = tokenGen;
             _tokenService = tokenService;
             _usernameGenerator = usernameGenerator;
+            _users = users;
+            _refreshTokens = refreshTokens;
         }
 
         public async Task<AuthResult> RegisterAsync(RegisterRequest request)
         {
-            if (await _context.Users.AnyAsync(u => u.Email == request.Email))
+            if (await _users.ExistsByEmailAsync(request.Email))
                 return new AuthResult(false, "Email is already registered", null);
 
             var user = new User
@@ -45,8 +49,8 @@ namespace Gainly_Auth_API.Service
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password)
             };
 
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
+            await _users.AddAsync(user);
+            await _users.SaveChangesAsync();
 
             var tokens = await _tokenGen.GenerateTokensAsync(user);
             return new AuthResult(true, null, tokens);
@@ -54,7 +58,7 @@ namespace Gainly_Auth_API.Service
 
         public async Task<AuthResult> LoginAsync(LoginRequest request)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+            var user = await _users.FindByEmailAsync(request.Email);
             if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
                 return new AuthResult(false, "Invalid credentials", null);
 
@@ -64,7 +68,7 @@ namespace Gainly_Auth_API.Service
         
         public async Task LogoutAsync(string refreshToken)
         {
-            var token = await _context.RefreshTokens.FirstOrDefaultAsync(r => r.Token == refreshToken);
+            var token = await _refreshTokens.FindByTokenAsync(refreshToken);
             if (token == null)
                 throw new Exception("Refresh token not found");
 
@@ -76,13 +80,12 @@ namespace Gainly_Auth_API.Service
         if (string.IsNullOrEmpty(refreshToken))
             return null;
 
-        var oldToken = await _context.RefreshTokens
-            .FirstOrDefaultAsync(r => r.Token == refreshToken);
+        var oldToken = await _refreshTokens.FindByTokenAsync(refreshToken);
 
         if (oldToken == null || oldToken.IsRevoked || oldToken.ExpiresAt < DateTime.UtcNow)
             return null;
 
-        var user = await _context.Users.FindAsync(oldToken.UserId);
+        var user = await _users.FindByIdAsync(oldToken.UserId);
         if (user == null)
             return null;
 
@@ -92,7 +95,7 @@ namespace Gainly_Auth_API.Service
         // Генерируем новую пару токенов
         var tokenPair = await _tokenGen.GenerateTokensAsync(user);
 
-        await _context.SaveChangesAsync();
+        await _refreshTokens.SaveChangesAsync();
 
         return tokenPair;
     }
@@ -112,7 +115,7 @@ namespace Gainly_Auth_API.Service
 
         public async Task<EmailCodeResult> SendEmailCodeAsync(string email)
         {
-              if (await _context.Users.AnyAsync(u => u.Email == email))
+              if (await _users.ExistsByEmailAsync(email))
                 return new EmailCodeResult(false,null);
             var code = new Random().Next(10000, 99999);
             var notification = new NotificationMessage
