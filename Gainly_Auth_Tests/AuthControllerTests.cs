@@ -4,6 +4,7 @@ using Gainly_Auth_API.Controllers;
 using Gainly_Auth_API.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace Gainly_Auth.Tests;
 
@@ -21,7 +22,7 @@ public class AuthControllerTests
     public async Task Register_ReturnsOk_WithTokens()
     {
         _authServiceMock
-            .Setup(s => s.RegisterAsync(It.IsAny<RegisterRequest>()))
+            .Setup(s => s.RegisterAsync(It.IsAny<RegisterRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new AuthResult(true, null, new TokenPair("access", "refresh")));
 
         var result = await _controller.Register(new RegisterRequest("email@mail.com", "pass"));
@@ -34,7 +35,7 @@ public class AuthControllerTests
     public async Task Login_ReturnsOk_WithTokens()
     {
         _authServiceMock
-            .Setup(s => s.LoginAsync(It.IsAny<LoginRequest>()))
+            .Setup(s => s.LoginAsync(It.IsAny<LoginRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new AuthResult(true, null, new TokenPair("a", "r")));
 
         var result = await _controller.Login(new LoginRequest("email@mail.com", "pass"));
@@ -47,7 +48,7 @@ public class AuthControllerTests
     public async Task Refresh_ReturnsOk_WhenValid()
     {
         _authServiceMock
-            .Setup(s => s.RefreshTokenAsync(It.IsAny<string>()))
+            .Setup(s => s.RefreshTokenAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new TokenPair("a", "r"));
 
         var result = await _controller.Refresh(new Gainly_Auth_API.Dtos.RefreshDto { RefreshToken = "r" });
@@ -58,7 +59,7 @@ public class AuthControllerTests
     public async Task Logout_ReturnsNoContent()
     {
         _authServiceMock
-            .Setup(s => s.LogoutAsync(It.IsAny<string>()))
+            .Setup(s => s.LogoutAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
         var result = await _controller.Logout("r");
@@ -69,7 +70,7 @@ public class AuthControllerTests
     public async Task Validate_ReturnsOk_WhenValid()
     {
         _authServiceMock
-            .Setup(s => s.ValidateTokenAsync(It.IsAny<string>()))
+            .Setup(s => s.ValidateTokenAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new TokenValidationResult(true, null));
 
         var result = await _controller.Validate(new Gainly_Auth_API.Dtos.TokenValidationDto { Token = "t" });
@@ -80,7 +81,7 @@ public class AuthControllerTests
     public async Task SendEmailCode_ReturnsOk_WithCode()
     {
         _authServiceMock
-            .Setup(s => s.SendEmailCodeAsync(It.IsAny<string>()))
+            .Setup(s => s.SendEmailCodeAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new EmailCodeResult(true, 12345));
 
         var result = await _controller.SendEmailCode("email@mail.com");

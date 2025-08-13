@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Gainly_Auth_API.Controllers;
 using Gainly_Auth_API.Interfaces;
 using Moq;
+using System.Threading;
 
 namespace Gainly_Auth.Tests
 {
@@ -13,7 +14,7 @@ namespace Gainly_Auth.Tests
         {
             var authService = new Mock<IAuthService>();
             authService
-                .Setup(s => s.ValidateTokenAsync(It.IsAny<string>()))
+                .Setup(s => s.ValidateTokenAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new TokenValidationResult(false, "invalid"));
 
             var controller = new AuthController(authService.Object);
