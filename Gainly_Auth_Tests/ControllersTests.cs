@@ -1,10 +1,10 @@
 ﻿using Xunit;
 using Microsoft.AspNetCore.Mvc;
-using Fitness_App_Auth.API.Controllers;
-using Fitness_App_Auth.API.Interfaces;
+using Gainly_Auth_API.Controllers;
+using Gainly_Auth_API.Interfaces;
 using Moq;
 
-namespace Fitness_App_Auth.Test
+namespace Gainly_Auth.Tests
 {
     public class ControllersTests
     {
@@ -18,7 +18,7 @@ namespace Fitness_App_Auth.Test
 
             var controller = new AuthController(authService.Object);
 
-            var result = await controller.Validate(new Fitness_App_Auth.API.Dtos.TokenValidationDto { Token = "random-invalid-token" });
+            var result = await controller.Validate(new Gainly_Auth_API.Dtos.TokenValidationDto { Token = "random-invalid-token" });
 
             Assert.IsType<UnauthorizedObjectResult>(result);
         }

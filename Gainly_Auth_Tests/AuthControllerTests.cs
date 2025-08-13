@@ -1,11 +1,11 @@
 using Xunit;
 using Moq;
-using Gainly_Auth.API.Controllers;
-using Gainly_Auth.API.Interfaces;
+using Gainly_Auth_API.Controllers;
+using Gainly_Auth_API.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
-namespace Gainly_Auth.Test;
+namespace Gainly_Auth.Tests;
 
 public class AuthControllerTests
 {
@@ -50,7 +50,7 @@ public class AuthControllerTests
             .Setup(s => s.RefreshTokenAsync(It.IsAny<string>()))
             .ReturnsAsync(new TokenPair("a", "r"));
 
-        var result = await _controller.Refresh(new Gainly_Auth.API.Dtos.RefreshDto { RefreshToken = "r" });
+        var result = await _controller.Refresh(new Gainly_Auth_API.Dtos.RefreshDto { RefreshToken = "r" });
         Assert.IsType<OkObjectResult>(result);
     }
 
@@ -72,7 +72,7 @@ public class AuthControllerTests
             .Setup(s => s.ValidateTokenAsync(It.IsAny<string>()))
             .ReturnsAsync(new TokenValidationResult(true, null));
 
-        var result = await _controller.Validate(new Gainly_Auth.API.Dtos.TokenValidationDto { Token = "t" });
+        var result = await _controller.Validate(new Gainly_Auth_API.Dtos.TokenValidationDto { Token = "t" });
         Assert.IsType<OkResult>(result);
     }
 
