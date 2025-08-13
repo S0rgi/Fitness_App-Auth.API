@@ -21,14 +21,16 @@ namespace Fitness_App_Auth.API.Service
         private readonly IConfiguration _config;
         private readonly IUserAuthenticationService _tokenGen;
         private readonly ITokenService _tokenService;
+        private readonly IUsernameGenerator _usernameGenerator;
 
-        public AuthService(AuthDbContext context, INotificationPublisher publisher, IConfiguration config, IUserAuthenticationService tokenGen, ITokenService tokenService)
+        public AuthService(AuthDbContext context, INotificationPublisher publisher, IConfiguration config, IUserAuthenticationService tokenGen, ITokenService tokenService, IUsernameGenerator usernameGenerator)
         {
             _context = context;
             _publisher = publisher;
             _config = config;
             _tokenGen = tokenGen;
             _tokenService = tokenService;
+            _usernameGenerator = usernameGenerator;
         }
 
         public async Task<AuthResult> RegisterAsync(RegisterRequest request)
@@ -39,7 +41,7 @@ namespace Fitness_App_Auth.API.Service
             var user = new User
             {
                 Email = request.Email,
-                Username = request.Username,
+                Username = await _usernameGenerator.GenerateAsync(request.Email),
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password)
             };
 
