@@ -9,7 +9,6 @@ using System.Security.Claims;
 using Gainly_Auth_API.Data;
 using Gainly_Auth_API.Models;
 using Gainly_Auth_API.Interfaces;
-using Gainly_Auth_API.Models;
 using System.Text.Json;
 
 namespace Gainly_Auth_API.Service
@@ -37,9 +36,9 @@ namespace Gainly_Auth_API.Service
             _refreshTokens = refreshTokens;
         }
 
-        public async Task<AuthResult> RegisterAsync(RegisterRequest request)
+        public async Task<AuthResult> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default)
         {
-            if (await _users.ExistsByEmailAsync(request.Email))
+            if (await _users.ExistsByEmailAsync(request.Email, cancellationToken))
                 return new AuthResult(false, "Email is already registered", null);
 
             var user = new User
@@ -49,16 +48,16 @@ namespace Gainly_Auth_API.Service
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password)
             };
 
-            await _users.AddAsync(user);
-            await _users.SaveChangesAsync();
+            await _users.AddAsync(user, cancellationToken);
+            await _users.SaveChangesAsync(cancellationToken);
 
             var tokens = await _tokenGen.GenerateTokensAsync(user);
             return new AuthResult(true, null, tokens);
         }
 
-        public async Task<AuthResult> LoginAsync(LoginRequest request)
+        public async Task<AuthResult> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default)
         {
-            var user = await _users.FindByEmailAsync(request.Email);
+            var user = await _users.FindByEmailAsync(request.Email, cancellationToken);
             if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
                 return new AuthResult(false, "Invalid credentials", null);
 
@@ -66,26 +65,26 @@ namespace Gainly_Auth_API.Service
             return new AuthResult(true, null, tokens);
         }
         
-        public async Task LogoutAsync(string refreshToken)
+        public async Task LogoutAsync(string refreshToken, CancellationToken cancellationToken = default)
         {
-            var token = await _refreshTokens.FindByTokenAsync(refreshToken);
+            var token = await _refreshTokens.FindByTokenAsync(refreshToken, cancellationToken);
             if (token == null)
                 throw new Exception("Refresh token not found");
 
             token.IsRevoked = true;
             await _context.SaveChangesAsync();
     }
-    public async Task<TokenPair> RefreshTokenAsync(string refreshToken)
+    public async Task<TokenPair> RefreshTokenAsync(string refreshToken, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(refreshToken))
             return null;
 
-        var oldToken = await _refreshTokens.FindByTokenAsync(refreshToken);
+        var oldToken = await _refreshTokens.FindByTokenAsync(refreshToken, cancellationToken);
 
         if (oldToken == null || oldToken.IsRevoked || oldToken.ExpiresAt < DateTime.UtcNow)
             return null;
 
-        var user = await _users.FindByIdAsync(oldToken.UserId);
+        var user = await _users.FindByIdAsync(oldToken.UserId, cancellationToken);
         if (user == null)
             return null;
 
@@ -95,12 +94,12 @@ namespace Gainly_Auth_API.Service
         // Генерируем новую пару токенов
         var tokenPair = await _tokenGen.GenerateTokensAsync(user);
 
-        await _refreshTokens.SaveChangesAsync();
+        await _refreshTokens.SaveChangesAsync(cancellationToken);
 
         return tokenPair;
     }
 
-        public Task<Interfaces.TokenValidationResult> ValidateTokenAsync(string token)
+        public Task<Interfaces.TokenValidationResult> ValidateTokenAsync(string token, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -113,9 +112,9 @@ namespace Gainly_Auth_API.Service
             }
         }
 
-        public async Task<EmailCodeResult> SendEmailCodeAsync(string email)
+        public async Task<EmailCodeResult> SendEmailCodeAsync(string email, CancellationToken cancellationToken = default)
         {
-              if (await _users.ExistsByEmailAsync(email))
+              if (await _users.ExistsByEmailAsync(email, cancellationToken))
                 return new EmailCodeResult(false,null);
             var code = new Random().Next(10000, 99999);
             var notification = new NotificationMessage

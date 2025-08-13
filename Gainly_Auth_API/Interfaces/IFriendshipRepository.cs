@@ -7,13 +7,13 @@ namespace Gainly_Auth_API.Interfaces
 {
     public interface IFriendshipRepository
     {
-        Task<bool> FriendshipExistsAsync(Guid userId, Guid friendId);
-        Task<Friendship?> FindByIdAsync(Guid friendshipId);
-        Task AddAsync(Friendship friendship);
-        Task RemoveAsync(Friendship friendship);
-        Task<IReadOnlyList<object>> GetPendingRequestsAsync(Guid userId);
-        Task<IReadOnlyList<object>> GetFriendsAsync(Guid userId);
-        Task SaveChangesAsync();
+        Task<bool> FriendshipExistsAsync(Guid userId, Guid friendId, CancellationToken ct = default);
+        Task<Friendship?> FindByIdAsync(Guid friendshipId, CancellationToken ct = default);
+        Task AddAsync(Friendship friendship, CancellationToken ct = default);
+        Task RemoveAsync(Friendship friendship, CancellationToken ct = default);
+        Task<IReadOnlyList<object>> GetPendingRequestsAsync(Guid userId, CancellationToken ct = default);
+        Task<IReadOnlyList<object>> GetFriendsAsync(Guid userId, CancellationToken ct = default);
+        Task SaveChangesAsync(CancellationToken ct = default);
     }
 }
 

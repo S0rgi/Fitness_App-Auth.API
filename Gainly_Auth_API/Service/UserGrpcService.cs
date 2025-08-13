@@ -12,13 +12,13 @@ using Gainly_Auth_API.Interfaces;
 [AllowAnonymous]
 public class UserGrpcService : UserService.UserServiceBase
 {   
-    private readonly AuthDbContext _context;
-    private readonly IConfiguration _config;
+    private readonly IUserRepository _users;
+    private readonly IFriendshipRepository _friendships;
     private readonly ITokenService _tokenService;
-    public UserGrpcService(AuthDbContext context,IConfiguration config, ITokenService tokenService)
+    public UserGrpcService(IUserRepository users, IFriendshipRepository friendships, ITokenService tokenService)
     {
-        _config = config;
-        _context = context;
+        _users = users;
+        _friendships = friendships;
         _tokenService = tokenService;
     }
 public override async Task<FriendshipResponse> CheckFriendship(FriendshipRequest request, ServerCallContext context)
@@ -26,14 +26,11 @@ public override async Task<FriendshipResponse> CheckFriendship(FriendshipRequest
     if (!Guid.TryParse(request.UserId, out var userId))
         throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid UserId"));
 
-    var friend = await _context.Users.FirstOrDefaultAsync(u => u.Username == request.FriendName);
+    var friend = await _users.FindByUsernameAsync(request.FriendName);
     if (friend == null)
         throw new RpcException(new Status(StatusCode.NotFound, "Friend's name not found"));
 
-    var exists = await _context.Friendships.AnyAsync(f =>
-        (f.UserId == userId && f.FriendId == friend.Id ||
-        f.UserId == friend.Id && f.FriendId == userId) &&
-        f.Status == FriendshipStatus.Accepted);
+    var exists = await _friendships.FriendshipExistsAsync(userId, friend.Id);
     if (!exists)
         throw new RpcException(new Status(StatusCode.NotFound, "User is not your friend"));
 
@@ -46,7 +43,7 @@ public override async Task<FriendshipResponse> CheckFriendship(FriendshipRequest
 
     public override async Task<UserResponse> GetUserById(UserRequest request, ServerCallContext context)
     {
-        var user = await _context.Users.FindAsync(Guid.Parse(request.Id));
+        var user = await _users.FindByIdAsync(Guid.Parse(request.Id));
         if (user == null)
             throw new RpcException(new Status(StatusCode.NotFound, "User not found"));
 
@@ -65,7 +62,7 @@ public override async Task<FriendshipResponse> CheckFriendship(FriendshipRequest
             var claimsPrincipal = _tokenService.ValidateAccessToken(request.AccessToken);
 
             var userId = claimsPrincipal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var user = await _context.Users.FindAsync(Guid.Parse(userId));
+            var user = await _users.FindByIdAsync(Guid.Parse(userId));
 
             if (user == null)
                 throw new RpcException(new Status(StatusCode.NotFound, "User not found"));

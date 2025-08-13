@@ -11,12 +11,12 @@ namespace Gainly_Auth_API.Service.Repositories
         private readonly AuthDbContext _context;
         public RefreshTokenRepository(AuthDbContext context) { _context = context; }
 
-        public Task<RefreshToken?> FindByTokenAsync(string token) => _context.RefreshTokens.FirstOrDefaultAsync(r => r.Token == token);
-        public async Task AddAsync(RefreshToken token)
+        public Task<RefreshToken?> FindByTokenAsync(string token, CancellationToken ct = default) => _context.RefreshTokens.FirstOrDefaultAsync(r => r.Token == token, ct);
+        public async Task AddAsync(RefreshToken token, CancellationToken ct = default)
         {
             await _context.RefreshTokens.AddAsync(token);
         }
-        public Task SaveChangesAsync() => _context.SaveChangesAsync();
+        public Task SaveChangesAsync(CancellationToken ct = default) => _context.SaveChangesAsync(ct);
     }
 }
 
