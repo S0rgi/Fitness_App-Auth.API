@@ -1,18 +1,13 @@
 using Fitness_App_Auth.API.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Fitness_App_Auth.API.Secure;
-using DotNetEnv;
 using Fitness_App_Auth.API.Interfaces;
 using Fitness_App_Auth.API.Service;
 using Fitness_App_Auth.API.Models;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
-using Grpc.AspNetCore.Web;
 // Загрузим .env (только локально)
 DotNetEnv.Env.Load("../.env");
 
@@ -56,8 +51,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IUserAuthenticationService, UserAuthenticationService>();
 builder.Services.AddScoped<IUsernameGenerator, UsernameGenerator>();
-
-// регистрация уже есть как INotificationPublisher выше — не дублируем конкретный тип
+builder.Services.AddScoped<IFriendshipService, FriendshipService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
