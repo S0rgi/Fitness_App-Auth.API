@@ -16,13 +16,15 @@ public class FriendController : ControllerBase
 
     [Authorize]
     [HttpPost("send-request-by-username/{friendUsername}")]
-    public async Task<IActionResult> SendFriendRequestByUsername(string friendUsername)
+    public async Task<IActionResult> SendFriendRequestByUsername(string friendUsername, CancellationToken ct)
     {
-        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+        var sub = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!Guid.TryParse(sub, out var userId))
+            return Problem(title: "Unauthorized", statusCode: StatusCodes.Status401Unauthorized);
 
-        var result = await _friendshipService.SendFriendRequestByUsernameAsync(userId, friendUsername);
+        var result = await _friendshipService.SendFriendRequestByUsernameAsync(userId, friendUsername, ct);
         if (result == null)
-            return BadRequest("Невозможно отправить заявку.");
+            return Problem(title: "Bad Request", detail: "Невозможно отправить заявку.", statusCode: StatusCodes.Status400BadRequest);
         var (friendship, user, friend) = result.Value;
 
         return Ok("Заявка отправлена.");
@@ -32,12 +34,14 @@ public class FriendController : ControllerBase
 
     [Authorize]
     [HttpPost("respond/{friendshipId}")]
-    public async Task<IActionResult> RespondToFriendRequest(Guid friendshipId, [FromQuery] bool accept)
+    public async Task<IActionResult> RespondToFriendRequest(Guid friendshipId, [FromQuery] bool accept, CancellationToken ct)
     {
-        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-        var result = await _friendshipService.RespondToFriendRequestAsync(friendshipId, userId, accept);
+        var sub = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!Guid.TryParse(sub, out var userId))
+            return Problem(title: "Unauthorized", statusCode: StatusCodes.Status401Unauthorized);
+        var result = await _friendshipService.RespondToFriendRequestAsync(friendshipId, userId, accept, ct);
         if (result == null)
-            return NotFound("Заявка не найдена.");
+            return Problem(title: "Not Found", detail: "Заявка не найдена.", statusCode: StatusCodes.Status404NotFound);
         var (friendship, sender, friend) = result.Value;
 
         return Ok($"Заявка {(accept ? "принята" : "отклонена")}.");
@@ -46,29 +50,35 @@ public class FriendController : ControllerBase
 
     [Authorize]
     [HttpGet("pending")]
-    public async Task<IActionResult> GetPendingRequests()
+    public async Task<IActionResult> GetPendingRequests(CancellationToken ct)
     {
-        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-        var pending = await _friendshipService.GetPendingRequestsAsync(userId);
+        var sub = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!Guid.TryParse(sub, out var userId))
+            return Problem(title: "Unauthorized", statusCode: StatusCodes.Status401Unauthorized);
+        var pending = await _friendshipService.GetPendingRequestsAsync(userId, ct);
         return Ok(pending);
     }
 
     [Authorize]
     [HttpGet("list")]
-    public async Task<IActionResult> GetFriends()
+    public async Task<IActionResult> GetFriends(CancellationToken ct)
     {
-        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-        var friends = await _friendshipService.GetFriendsAsync(userId);
+        var sub = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!Guid.TryParse(sub, out var userId))
+            return Problem(title: "Unauthorized", statusCode: StatusCodes.Status401Unauthorized);
+        var friends = await _friendshipService.GetFriendsAsync(userId, ct);
         return Ok(friends);
     }
     
     [Authorize]
     [HttpDelete("remove-friend/{friendUsername}")]
-    public async Task<IActionResult> RemoveFriend(string friendUsername)
+    public async Task<IActionResult> RemoveFriend(string friendUsername, CancellationToken ct)
     {
-        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-        var ok = await _friendshipService.RemoveFriendAsync(userId, friendUsername);
-        if (!ok) return BadRequest("Вы не являетесь друзьями.");
+        var sub = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!Guid.TryParse(sub, out var userId))
+            return Problem(title: "Unauthorized", statusCode: StatusCodes.Status401Unauthorized);
+        var ok = await _friendshipService.RemoveFriendAsync(userId, friendUsername, ct);
+        if (!ok) return Problem(title: "Bad Request", detail: "Вы не являетесь друзьями.", statusCode: StatusCodes.Status400BadRequest);
         return Ok("Пользователь удалён из друзей.");
     }
 

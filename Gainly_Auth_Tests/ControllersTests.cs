@@ -4,6 +4,7 @@ using Gainly_Auth_API.Controllers;
 using Gainly_Auth_API.Interfaces;
 using Moq;
 using System.Threading;
+using Microsoft.AspNetCore.Http;
 
 namespace Gainly_Auth.Tests
 {
@@ -19,9 +20,10 @@ namespace Gainly_Auth.Tests
 
             var controller = new AuthController(authService.Object);
 
-            var result = await controller.Validate(new Gainly_Auth_API.Dtos.TokenValidationDto { Token = "random-invalid-token" });
+            var result = await controller.Validate(new Gainly_Auth_API.Dtos.TokenValidationDto { Token = "random-invalid-token" }, CancellationToken.None);
 
-            Assert.IsType<UnauthorizedObjectResult>(result);
+            var obj = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(StatusCodes.Status401Unauthorized, obj.StatusCode);
         }
     }
 }

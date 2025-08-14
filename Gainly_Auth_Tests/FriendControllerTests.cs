@@ -30,7 +30,7 @@ public class FriendControllerTests
 			.ReturnsAsync((new Gainly_Auth_API.Models.Friendship(), new Gainly_Auth_API.Models.User { Username = "me" }, new Gainly_Auth_API.Models.User { Email = "f@mail.com" }));
 
 		var controller = CreateControllerWithUser(service, userId);
-		var result = await controller.SendFriendRequestByUsername("friend");
+		var result = await controller.SendFriendRequestByUsername("friend", CancellationToken.None);
 		Assert.IsType<OkObjectResult>(result);
 	}
 
@@ -44,8 +44,9 @@ public class FriendControllerTests
 			.ReturnsAsync(((Gainly_Auth_API.Models.Friendship, Gainly_Auth_API.Models.User, Gainly_Auth_API.Models.User)?)null);
 
 		var controller = CreateControllerWithUser(service, userId);
-		var result = await controller.SendFriendRequestByUsername("friend");
-		Assert.IsType<BadRequestObjectResult>(result);
+		var result = await controller.SendFriendRequestByUsername("friend", CancellationToken.None);
+		var obj = Assert.IsType<ObjectResult>(result);
+		Assert.Equal(StatusCodes.Status400BadRequest, obj.StatusCode);
 	}
 
 	[Theory]
@@ -60,7 +61,7 @@ public class FriendControllerTests
 			.ReturnsAsync((new Gainly_Auth_API.Models.Friendship(), new Gainly_Auth_API.Models.User(), new Gainly_Auth_API.Models.User()));
 
 		var controller = CreateControllerWithUser(service, userId);
-		var result = await controller.RespondToFriendRequest(Guid.NewGuid(), accept);
+		var result = await controller.RespondToFriendRequest(Guid.NewGuid(), accept, CancellationToken.None);
 		Assert.IsType<OkObjectResult>(result);
 	}
 
@@ -74,8 +75,9 @@ public class FriendControllerTests
 			.ReturnsAsync(((Gainly_Auth_API.Models.Friendship, Gainly_Auth_API.Models.User, Gainly_Auth_API.Models.User)?)null);
 
 		var controller = CreateControllerWithUser(service, userId);
-		var result = await controller.RespondToFriendRequest(Guid.NewGuid(), true);
-		Assert.IsType<NotFoundObjectResult>(result);
+		var result = await controller.RespondToFriendRequest(Guid.NewGuid(), true, CancellationToken.None);
+		var obj = Assert.IsType<ObjectResult>(result);
+		Assert.Equal(StatusCodes.Status404NotFound, obj.StatusCode);
 	}
 
 	[Fact]
@@ -87,7 +89,7 @@ public class FriendControllerTests
 			.ReturnsAsync(new List<object> { new { Id = Guid.NewGuid() } });
 
 		var controller = CreateControllerWithUser(service, userId);
-		var result = await controller.GetPendingRequests();
+		var result = await controller.GetPendingRequests(CancellationToken.None);
 		var ok = Assert.IsType<OkObjectResult>(result);
 		Assert.NotNull(ok.Value);
 	}
@@ -101,7 +103,7 @@ public class FriendControllerTests
 			.ReturnsAsync(new List<object> { new { Id = Guid.NewGuid(), Username = "f" } });
 
 		var controller = CreateControllerWithUser(service, userId);
-		var result = await controller.GetFriends();
+		var result = await controller.GetFriends(CancellationToken.None);
 		var ok = Assert.IsType<OkObjectResult>(result);
 		Assert.NotNull(ok.Value);
 	}
@@ -114,7 +116,7 @@ public class FriendControllerTests
 		service.Setup(s => s.RemoveFriendAsync(userId, "friend", It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
 		var controller = CreateControllerWithUser(service, userId);
-		var result = await controller.RemoveFriend("friend");
+		var result = await controller.RemoveFriend("friend", CancellationToken.None);
 		Assert.IsType<OkObjectResult>(result);
 	}
 
@@ -126,8 +128,9 @@ public class FriendControllerTests
 		service.Setup(s => s.RemoveFriendAsync(userId, "friend", It.IsAny<CancellationToken>())).ReturnsAsync(false);
 
 		var controller = CreateControllerWithUser(service, userId);
-		var result = await controller.RemoveFriend("friend");
-		Assert.IsType<BadRequestObjectResult>(result);
+		var result = await controller.RemoveFriend("friend", CancellationToken.None);
+		var obj = Assert.IsType<ObjectResult>(result);
+		Assert.Equal(StatusCodes.Status400BadRequest, obj.StatusCode);
 	}
 }
 

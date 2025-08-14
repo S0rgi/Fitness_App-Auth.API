@@ -5,6 +5,7 @@ using Gainly_Auth_API.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using System.Threading;
+using Gainly_Auth_API.Dtos;
 
 namespace Gainly_Auth.Tests;
 
@@ -22,10 +23,10 @@ public class AuthControllerTests
     public async Task Register_ReturnsOk_WithTokens()
     {
         _authServiceMock
-            .Setup(s => s.RegisterAsync(It.IsAny<RegisterRequest>(), It.IsAny<CancellationToken>()))
+            .Setup(s => s.RegisterAsync(It.IsAny<RegisterDto>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new AuthResult(true, null, new TokenPair("access", "refresh")));
 
-        var result = await _controller.Register(new RegisterRequest("email@mail.com", "pass"));
+        var result = await _controller.Register(new RegisterDto { Email = "email@mail.com", Password = "pass" }, CancellationToken.None);
 
         var ok = Assert.IsType<OkObjectResult>(result);
         Assert.IsType<TokenPair>(ok.Value);
@@ -35,10 +36,10 @@ public class AuthControllerTests
     public async Task Login_ReturnsOk_WithTokens()
     {
         _authServiceMock
-            .Setup(s => s.LoginAsync(It.IsAny<LoginRequest>(), It.IsAny<CancellationToken>()))
+            .Setup(s => s.LoginAsync(It.IsAny<LoginDto>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new AuthResult(true, null, new TokenPair("a", "r")));
 
-        var result = await _controller.Login(new LoginRequest("email@mail.com", "pass"));
+        var result = await _controller.Login(new LoginDto { Email = "email@mail.com", Password = "pass" }, CancellationToken.None);
 
         var ok = Assert.IsType<OkObjectResult>(result);
         Assert.IsType<TokenPair>(ok.Value);
@@ -51,7 +52,7 @@ public class AuthControllerTests
             .Setup(s => s.RefreshTokenAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new TokenPair("a", "r"));
 
-        var result = await _controller.Refresh(new Gainly_Auth_API.Dtos.RefreshDto { RefreshToken = "r" });
+        var result = await _controller.Refresh(new Gainly_Auth_API.Dtos.RefreshDto { RefreshToken = "r" }, CancellationToken.None);
         Assert.IsType<OkObjectResult>(result);
     }
 
@@ -62,7 +63,7 @@ public class AuthControllerTests
             .Setup(s => s.LogoutAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
-        var result = await _controller.Logout("r");
+        var result = await _controller.Logout("r", CancellationToken.None);
         Assert.IsType<NoContentResult>(result);
     }
 
@@ -73,7 +74,7 @@ public class AuthControllerTests
             .Setup(s => s.ValidateTokenAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new TokenValidationResult(true, null));
 
-        var result = await _controller.Validate(new Gainly_Auth_API.Dtos.TokenValidationDto { Token = "t" });
+        var result = await _controller.Validate(new Gainly_Auth_API.Dtos.TokenValidationDto { Token = "t" }, CancellationToken.None);
         Assert.IsType<OkResult>(result);
     }
 
@@ -84,7 +85,7 @@ public class AuthControllerTests
             .Setup(s => s.SendEmailCodeAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new EmailCodeResult(true, 12345));
 
-        var result = await _controller.SendEmailCode("email@mail.com");
+        var result = await _controller.SendEmailCode("email@mail.com", CancellationToken.None);
         var ok = Assert.IsType<OkObjectResult>(result);
         Assert.Equal(12345, ok.Value);
     }

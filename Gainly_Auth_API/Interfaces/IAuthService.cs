@@ -8,12 +8,12 @@ namespace Gainly_Auth_API.Interfaces
         /// <summary>
         /// Регистрирует нового пользователя.
         /// </summary>
-        Task<AuthResult> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default);
+        Task<AuthResult> RegisterAsync(Gainly_Auth_API.Dtos.RegisterDto request, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Аутентифицирует пользователя и возвращает токены.
         /// </summary>
-        Task<AuthResult> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default);
+        Task<AuthResult> LoginAsync(Gainly_Auth_API.Dtos.LoginDto request, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Обновляет access-токен по refresh-токену.
@@ -36,8 +36,6 @@ namespace Gainly_Auth_API.Interfaces
         Task<EmailCodeResult> SendEmailCodeAsync(string email, CancellationToken cancellationToken = default);
     }
 
-    public record RegisterRequest(string Email, string Password);
-    public record LoginRequest(string Email, string Password);
     public record TokenPair(string AccessToken, string RefreshToken);
     public record AuthResult(bool Success, string? ErrorMessage, TokenPair? Tokens);
     public record TokenValidationResult(bool IsValid, string? Reason);

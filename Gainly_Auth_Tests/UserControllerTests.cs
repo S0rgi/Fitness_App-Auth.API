@@ -28,8 +28,9 @@ public class UserControllerTests
 	{
 		var service = new Mock<IUserService>();
 		var controller = CreateController(service, null);
-		var result = await controller.ChangeUsername(new ChangeUsernameDto { NewUsername = "new" });
-		Assert.IsType<UnauthorizedResult>(result);
+		var result = await controller.ChangeUsername(new ChangeUsernameDto { NewUsername = "new" }, CancellationToken.None);
+		var obj = Assert.IsType<ObjectResult>(result);
+		Assert.Equal(StatusCodes.Status401Unauthorized, obj.StatusCode);
 	}
 
 	[Theory]
@@ -43,8 +44,16 @@ public class UserControllerTests
 		service.Setup(s => s.ChangeUsernameAsync(userId, "new"))
 			.ReturnsAsync(svcResult);
 		var controller = CreateController(service, userId);
-		var result = await controller.ChangeUsername(new ChangeUsernameDto { NewUsername = "new" });
-		Assert.IsType(expected, result);
+		var result = await controller.ChangeUsername(new ChangeUsernameDto { NewUsername = "new" }, CancellationToken.None);
+		if (expected == typeof(OkObjectResult))
+		{
+			Assert.IsType<OkObjectResult>(result);
+		}
+		else
+		{
+			var obj = Assert.IsType<ObjectResult>(result);
+			Assert.Equal(expected == typeof(UnauthorizedResult) ? StatusCodes.Status401Unauthorized : StatusCodes.Status400BadRequest, obj.StatusCode);
+		}
 	}
 
 	[Fact]
@@ -54,7 +63,7 @@ public class UserControllerTests
 		service.Setup(s => s.DeleteUserByEmailAsync("e"))
 			.ReturnsAsync(true);
 		var controller = CreateController(service, Guid.NewGuid());
-		var result = await controller.DeleteUser("e");
+		var result = await controller.DeleteUser("e", CancellationToken.None);
 		Assert.IsType<OkObjectResult>(result);
 	}
 
@@ -65,8 +74,9 @@ public class UserControllerTests
 		service.Setup(s => s.DeleteUserByEmailAsync("e"))
 			.ReturnsAsync(false);
 		var controller = CreateController(service, Guid.NewGuid());
-		var result = await controller.DeleteUser("e");
-		Assert.IsType<BadRequestObjectResult>(result);
+		var result = await controller.DeleteUser("e", CancellationToken.None);
+		var obj2 = Assert.IsType<ObjectResult>(result);
+		Assert.Equal(StatusCodes.Status400BadRequest, obj2.StatusCode);
 	}
 
 	[Fact]
@@ -76,7 +86,7 @@ public class UserControllerTests
 		service.Setup(s => s.UserExistsAsync("e"))
 			.ReturnsAsync(true);
 		var controller = CreateController(service, Guid.NewGuid());
-		var result = await controller.UserExist("e");
+		var result = await controller.UserExist("e", CancellationToken.None);
 		Assert.IsType<OkObjectResult>(result);
 	}
 
@@ -87,8 +97,9 @@ public class UserControllerTests
 		service.Setup(s => s.UserExistsAsync("e"))
 			.ReturnsAsync(false);
 		var controller = CreateController(service, Guid.NewGuid());
-		var result = await controller.UserExist("e");
-		Assert.IsType<BadRequestObjectResult>(result);
+		var result = await controller.UserExist("e", CancellationToken.None);
+		var obj3 = Assert.IsType<ObjectResult>(result);
+		Assert.Equal(StatusCodes.Status400BadRequest, obj3.StatusCode);
 	}
 }
 

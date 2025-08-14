@@ -17,56 +17,68 @@ namespace Gainly_Auth_API.Controllers
 
         [HttpPost("register")]
         [ProducesResponseType(typeof(TokenPair), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Register([FromBody] RegisterDto request, CancellationToken ct)
         {
-            var result = await _authService.RegisterAsync(request);
-            return result.Success ? Ok(result.Tokens) : BadRequest(result.ErrorMessage);
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
+            var result = await _authService.RegisterAsync(request, ct);
+            if (result.Success) return Ok(result.Tokens);
+            return Problem(title: "Registration failed", detail: result.ErrorMessage, statusCode: StatusCodes.Status400BadRequest);
         }
 
         [HttpPost("login")]
         [ProducesResponseType(typeof(TokenPair), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(string), StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> Login([FromBody] LoginRequest request)
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> Login([FromBody] LoginDto request, CancellationToken ct)
         {
-            var result = await _authService.LoginAsync(request);
-            return result.Success ? Ok(result.Tokens) : Unauthorized(result.ErrorMessage);
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
+            var result = await _authService.LoginAsync(request, ct);
+            if (result.Success) return Ok(result.Tokens);
+            return Problem(title: "Unauthorized", detail: result.ErrorMessage, statusCode: StatusCodes.Status401Unauthorized);
         }
 
         [HttpPost("refresh")]
         [ProducesResponseType(typeof(TokenPair), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(string), StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> Refresh([FromBody] RefreshDto dto)
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> Refresh([FromBody] RefreshDto dto, CancellationToken ct)
         {
-            var tokens = await _authService.RefreshTokenAsync(dto.RefreshToken);
-            return tokens != null ? Ok(tokens) : Unauthorized("Invalid refresh token");
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
+            var tokens = await _authService.RefreshTokenAsync(dto.RefreshToken, ct);
+            if (tokens != null) return Ok(tokens);
+            return Problem(title: "Unauthorized", detail: "Invalid refresh token", statusCode: StatusCodes.Status401Unauthorized);
         }
 
         [HttpDelete("logout")]
         [ProducesResponseType(typeof(void), StatusCodes.Status204NoContent)]
-        public async Task<IActionResult> Logout([FromBody] string refreshToken)
+        public async Task<IActionResult> Logout([FromBody] string refreshToken, CancellationToken ct)
         {
-            await _authService.LogoutAsync(refreshToken);
+            await _authService.LogoutAsync(refreshToken, ct);
             return NoContent();
         }
 
         [HttpPost("validate")]
-        public async Task<IActionResult> Validate([FromBody] TokenValidationDto dto)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> Validate([FromBody] TokenValidationDto dto, CancellationToken ct)
         {
-            var result = await _authService.ValidateTokenAsync(dto.Token);
-            return result.IsValid ? Ok() : Unauthorized(result.Reason);
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
+            var result = await _authService.ValidateTokenAsync(dto.Token, ct);
+            if (result.IsValid) return Ok();
+            return Problem(title: "Unauthorized", detail: result.Reason, statusCode: StatusCodes.Status401Unauthorized);
         }
 
         [HttpGet("email_code/{email}")]
         [ProducesResponseType(typeof(int), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> SendEmailCode(string email)
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> SendEmailCode(string email, CancellationToken ct)
         {
-
-            EmailCodeResult res = await _authService.SendEmailCodeAsync(email);
-            if (res.IsValid)
-                return Ok(res.code);
-            return BadRequest("Email уже занят");
+            var res = await _authService.SendEmailCodeAsync(email, ct);
+            if (res.IsValid) return Ok(res.code);
+            return Problem(title: "Email busy", detail: "Email уже занят", statusCode: StatusCodes.Status400BadRequest);
         }
     }
 }

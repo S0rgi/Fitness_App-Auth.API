@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Moq;
 using System.Threading;
+using Gainly_Auth_API.Dtos;
 
 namespace Gainly_Auth.Tests;
 
@@ -51,7 +52,7 @@ public class AuthServiceTests
 			.ReturnsAsync(new TokenPair("a", "r"));
 
 		var service = CreateService(db, users, refreshTokens, publisher, tokenGen, tokenService, usernameGen);
-		var result = await service.RegisterAsync(new RegisterRequest("e@mail.com", "pass"));
+        var result = await service.RegisterAsync(new RegisterDto { Email = "e@mail.com", Password = "pass" });
 
 		Assert.True(result.Success);
 		Assert.NotNull(result.Tokens);
@@ -73,7 +74,7 @@ public class AuthServiceTests
 		tokenGen.Setup(t => t.GenerateTokensAsync(user)).ReturnsAsync(new TokenPair("a", "r"));
 
 		var service = CreateService(db, users, refreshTokens, publisher, tokenGen, tokenService, usernameGen);
-		var result = await service.LoginAsync(new LoginRequest("e@mail.com", "pass"));
+        var result = await service.LoginAsync(new LoginDto { Email = "e@mail.com", Password = "pass" });
 
 		Assert.True(result.Success);
 		Assert.NotNull(result.Tokens);

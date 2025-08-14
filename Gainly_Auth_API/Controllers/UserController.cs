@@ -18,38 +18,41 @@ namespace Gainly_Auth_API.Controllers
         }
         [Authorize]
         [HttpPatch("change-username")]
-        public async Task<IActionResult> ChangeUsername([FromBody] ChangeUsernameDto dto)
+        public async Task<IActionResult> ChangeUsername([FromBody] ChangeUsernameDto dto, CancellationToken ct)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+                return ValidationProblem(ModelState);
 
             // Получаем ID пользователя из токена
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
-                return Unauthorized();
+                return Problem(title: "Unauthorized", statusCode: StatusCodes.Status401Unauthorized);
 
-            var result = await _userService.ChangeUsernameAsync(Guid.Parse(userId), dto.NewUsername);
+            if (!Guid.TryParse(userId, out var id))
+                return ValidationProblem(title: "Invalid user id", statusCode: StatusCodes.Status400BadRequest);
+
+            var result = await _userService.ChangeUsernameAsync(id, dto.NewUsername);
             return result switch
             {
                 ChangeUsernameResult.Success => Ok("Username изменён"),
-                ChangeUsernameResult.UserNotFound => Unauthorized(),
-                ChangeUsernameResult.UsernameTaken => BadRequest("Username занят"),
-                _ => StatusCode(500)
+                ChangeUsernameResult.UserNotFound => Problem(title: "Unauthorized", statusCode: StatusCodes.Status401Unauthorized),
+                ChangeUsernameResult.UsernameTaken => Problem(title: "Bad Request", detail: "Username занят", statusCode: StatusCodes.Status400BadRequest),
+                _ => Problem(statusCode: StatusCodes.Status500InternalServerError)
             };
         }
         
         [HttpDelete("DeleteUser")]
-        public async Task<IActionResult> DeleteUser(string email){
+        public async Task<IActionResult> DeleteUser(string email, CancellationToken ct){
             var deleted = await _userService.DeleteUserByEmailAsync(email);
             if (!deleted)
-                return BadRequest("email не найден");
+                return Problem(title: "Bad Request", detail: "email не найден", statusCode: StatusCodes.Status400BadRequest);
             return Ok("user успешно удалён");
         }
         [HttpGet("UserExist")]
-        public async Task<IActionResult> UserExist(string email){
+        public async Task<IActionResult> UserExist(string email, CancellationToken ct){
             var exists = await _userService.UserExistsAsync(email);
             if (!exists)
-                return BadRequest("email не найден");
+                return Problem(title: "Bad Request", detail: "email не найден", statusCode: StatusCodes.Status400BadRequest);
             return Ok("email найден");
         }
 

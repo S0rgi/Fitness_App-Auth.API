@@ -8,6 +8,7 @@ using System.Text;
 using System.Security.Claims;
 using Gainly_Auth_API.Data;
 using Gainly_Auth_API.Models;
+using Gainly_Auth_API.Dtos;
 using Gainly_Auth_API.Interfaces;
 using System.Text.Json;
 
@@ -36,7 +37,7 @@ namespace Gainly_Auth_API.Service
             _refreshTokens = refreshTokens;
         }
 
-        public async Task<AuthResult> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default)
+        public async Task<AuthResult> RegisterAsync(RegisterDto request, CancellationToken cancellationToken = default)
         {
             if (await _users.ExistsByEmailAsync(request.Email, cancellationToken))
                 return new AuthResult(false, "Email is already registered", null);
@@ -56,7 +57,7 @@ namespace Gainly_Auth_API.Service
             return new AuthResult(true, null, tokens);
         }
 
-        public async Task<AuthResult> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default)
+        public async Task<AuthResult> LoginAsync(LoginDto request, CancellationToken cancellationToken = default)
         {
             var user = await _users.FindByEmailAsync(request.Email, cancellationToken);
             if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
