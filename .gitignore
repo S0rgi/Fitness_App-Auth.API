@@ -121,3 +121,5 @@ _site/
 *.idea/
 *.sln.iml
 *.sln.ide
+
+venv/

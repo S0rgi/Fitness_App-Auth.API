@@ -30,8 +30,13 @@ builder.Services.AddSingleton<INotificationPublisher>(sp =>
     return new MessagePublisher(uriRabbitmq, pingUrl);
 });
 
-builder.Services.AddDbContext<AuthDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("AuthDb")));
+var useTestDb = builder.Configuration.GetValue<bool>("UseTestDb"); // из аргумента
+var connectionString = useTestDb 
+    ? builder.Configuration.GetConnectionString("AuthDb_test") 
+    : builder.Configuration.GetConnectionString("AuthDb");
+
+builder.Services.AddDbContext<AuthDbContext>(options => 
+    options.UseNpgsql(connectionString));
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 // JWT Аутентификация
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

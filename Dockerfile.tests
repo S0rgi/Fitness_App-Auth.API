@@ -1,0 +1,5 @@
+FROM python:3.12-slim AS tests
+WORKDIR /src
+COPY . .
+RUN pip install --no-cache-dir -r e2e_tests/requirements.txt
+CMD ["python", "e2e_tests/test.py"]

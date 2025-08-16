@@ -1,6 +1,7 @@
 version: '3.9'
 services:
-  auth-api:
+  auth_api:
+    container_name: auth_api_container
     build:
       context: .
     ports:
@@ -9,4 +10,28 @@ services:
       - .env #
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-    
+      UseTestDb: "true"
+      # ConnectionStrings__AuthDb_test: ${ConnectionStrings__AuthDb_test}
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/swagger/index.html || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+  e2e_tests:
+    container_name: e2e_tests_container
+    build:
+      context: .
+      dockerfile: Dockerfile.tests
+    env_file:
+      - .env
+    environment:
+      INTEGRATION_BASE_URL: http://auth_api:8080
+      ConnectionURL__AuthDb_test: ${ConnectionURL__AuthDb_test}
+    depends_on:
+      auth_api:
+        condition: service_healthy
+    working_dir: /src
+    volumes:
+      - ./:/src:ro
+    command: python e2e_tests/test.py
