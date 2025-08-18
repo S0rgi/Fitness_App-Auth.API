@@ -11,6 +11,8 @@ using Gainly_Auth_API.Models;
 using Gainly_Auth_API.Dtos;
 using Gainly_Auth_API.Interfaces;
 using System.Text.Json;
+using static Google.Apis.Auth.GoogleJsonWebSignature;
+using Google.Apis.Auth;
 
 namespace Gainly_Auth_API.Service
 {
@@ -131,7 +133,9 @@ namespace Gainly_Auth_API.Service
         }
         public async Task<AuthResult> GoogleLoginAsync(string GoogleIdToken, CancellationToken cancellationToken = default)
         {
-            var payload = await Google.Apis.Auth.GoogleJsonWebSignature.ValidateAsync(GoogleIdToken);
+            Payload payload;
+            try {  payload = await ValidateAsync(GoogleIdToken); }
+            catch (Exception ex) { return new AuthResult(false, ex.Message, null); }
             if (payload == null)
             {
                 return new AuthResult(false, "Bad token", null);
