@@ -80,6 +80,20 @@ namespace Gainly_Auth_API.Controllers
             if (res.IsValid) return Ok(res.code);
             return Problem(title: "Email busy", detail: "Email уже занят", statusCode: StatusCodes.Status400BadRequest);
         }
+
+        [HttpPost("google")]
+        [ProducesResponseType(typeof(TokenPair), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginDto request, CancellationToken ct)
+        {
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
+            var result = await _authService.GoogleLoginAsync(request.GoogleIdToken, ct);
+            if (result.Success) return Ok(result.Tokens);
+            
+            return Problem(title: "Login Failed", detail: result.ErrorMessage, statusCode: StatusCodes.Status400BadRequest);
+
+        }
     }
 }
 

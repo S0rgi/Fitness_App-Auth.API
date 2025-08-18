@@ -66,7 +66,7 @@ namespace Gainly_Auth_API.Service
             var tokens = await _tokenGen.GenerateTokensAsync(user);
             return new AuthResult(true, null, tokens);
         }
-        
+
         public async Task LogoutAsync(string refreshToken, CancellationToken cancellationToken = default)
         {
             var token = await _refreshTokens.FindByTokenAsync(refreshToken, cancellationToken);
@@ -75,31 +75,31 @@ namespace Gainly_Auth_API.Service
 
             token.IsRevoked = true;
             await _context.SaveChangesAsync();
-    }
-    public async Task<TokenPair> RefreshTokenAsync(string refreshToken, CancellationToken cancellationToken = default)
-    {
-        if (string.IsNullOrEmpty(refreshToken))
-            return null;
+        }
+        public async Task<TokenPair> RefreshTokenAsync(string refreshToken, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrEmpty(refreshToken))
+                return null;
 
-        var oldToken = await _refreshTokens.FindByTokenAsync(refreshToken, cancellationToken);
+            var oldToken = await _refreshTokens.FindByTokenAsync(refreshToken, cancellationToken);
 
-        if (oldToken == null || oldToken.IsRevoked || oldToken.ExpiresAt < DateTime.UtcNow)
-            return null;
+            if (oldToken == null || oldToken.IsRevoked || oldToken.ExpiresAt < DateTime.UtcNow)
+                return null;
 
-        var user = await _users.FindByIdAsync(oldToken.UserId, cancellationToken);
-        if (user == null)
-            return null;
+            var user = await _users.FindByIdAsync(oldToken.UserId, cancellationToken);
+            if (user == null)
+                return null;
 
-        // Отзываем старый токен
-        oldToken.IsRevoked = true;
+            // Отзываем старый токен
+            oldToken.IsRevoked = true;
 
-        // Генерируем новую пару токенов
-        var tokenPair = await _tokenGen.GenerateTokensAsync(user);
+            // Генерируем новую пару токенов
+            var tokenPair = await _tokenGen.GenerateTokensAsync(user);
 
-        await _refreshTokens.SaveChangesAsync(cancellationToken);
+            await _refreshTokens.SaveChangesAsync(cancellationToken);
 
-        return tokenPair;
-    }
+            return tokenPair;
+        }
 
         public Task<Interfaces.TokenValidationResult> ValidateTokenAsync(string token, CancellationToken cancellationToken = default)
         {
@@ -116,18 +116,45 @@ namespace Gainly_Auth_API.Service
 
         public async Task<EmailCodeResult> SendEmailCodeAsync(string email, CancellationToken cancellationToken = default)
         {
-              if (await _users.ExistsByEmailAsync(email, cancellationToken))
-                return new EmailCodeResult(false,null);
+            if (await _users.ExistsByEmailAsync(email, cancellationToken))
+                return new EmailCodeResult(false, null);
             var code = new Random().Next(10000, 99999);
             var notification = new NotificationMessage
             {
                 Type = "code",
-                Action=code.ToString(),
+                Action = code.ToString(),
                 SenderName = "none",
                 RecipientEmail = email
             };
             _publisher.PublishAsync(JsonSerializer.Serialize(notification), "code");
             return new EmailCodeResult(true, code);
+        }
+        public async Task<AuthResult> GoogleLoginAsync(string GoogleIdToken, CancellationToken cancellationToken = default)
+        {
+            var payload = await Google.Apis.Auth.GoogleJsonWebSignature.ValidateAsync(GoogleIdToken);
+            if (payload == null)
+            {
+                return new AuthResult(false, "Bad token", null);
+            }
+            var user = await _users.FindByEmailAsync(payload.Email, cancellationToken);
+            if (user != null)
+            {
+                var tokensLog = await _tokenGen.GenerateTokensAsync(user);
+                return new AuthResult(true, null, tokensLog);
+            }
+
+            user = new User
+            {
+                Email = payload.Email,
+                Username = await _usernameGenerator.GenerateAsync(payload.Email),
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("string"),
+                RegistrationDate = DateTime.UtcNow
+            };
+            await _users.AddAsync(user, cancellationToken);
+            await _users.SaveChangesAsync(cancellationToken);
+
+            var tokens = await _tokenGen.GenerateTokensAsync(user);
+            return new AuthResult(true, null, tokens);
         }
     }
 }
