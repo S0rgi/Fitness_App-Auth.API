@@ -68,14 +68,14 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
     // API Key
-    // options.AddSecurityDefinition("ApiKey", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-    // {
-    //     Description = "Введите API ключ в заголовке X-API-KEY",
-    //     Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
-    //     Name = "X-API-KEY",
-    //     In = Microsoft.OpenApi.Models.ParameterLocation.Header,
-    //     Scheme = "ApiKeyScheme"
-    // });
+    options.AddSecurityDefinition("ApiKey", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Description = "Введите API ключ в заголовке X-API-KEY",
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+        Name = "X-API-KEY",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Scheme = "ApiKeyScheme"
+    });
 
     // Bearer JWT
     options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
@@ -144,7 +144,7 @@ app.UseSwaggerUI(c =>
     c.RoutePrefix = "swagger";
 });
 
-//app.UseMiddleware<ApiKeyMiddleware>();
+app.UseMiddleware<ApiKeyMiddleware>();
 
 app.UseAuthentication();
 app.UseAuthorization();
