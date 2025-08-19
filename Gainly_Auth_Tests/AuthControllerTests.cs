@@ -52,7 +52,7 @@ public class AuthControllerTests
             .Setup(s => s.RefreshTokenAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new TokenPair("a", "r"));
 
-        var result = await _controller.Refresh(new Gainly_Auth_API.Dtos.RefreshDto { RefreshToken = "r" }, CancellationToken.None);
+        var result = await _controller.Refresh(new RefreshDto { RefreshToken = "r" }, CancellationToken.None);
         Assert.IsType<OkObjectResult>(result);
     }
 
@@ -61,9 +61,9 @@ public class AuthControllerTests
     {
         _authServiceMock
             .Setup(s => s.LogoutAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+            .Returns(Task.FromResult(true));
 
-        var result = await _controller.Logout("r", CancellationToken.None);
+        var result = await _controller.Logout(new RefreshDto { RefreshToken = "r" } , CancellationToken.None);
         Assert.IsType<NoContentResult>(result);
     }
 
@@ -88,6 +88,19 @@ public class AuthControllerTests
         var result = await _controller.SendEmailCode("email@mail.com", CancellationToken.None);
         var ok = Assert.IsType<OkObjectResult>(result);
         Assert.Equal(12345, ok.Value);
+    }
+
+    [Fact]
+    public async Task GoogleLogin_ReturnsOk_WithTokens()
+    {
+        _authServiceMock
+            .Setup(s => s.GoogleLoginAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new AuthResult(true, null, new TokenPair("access_google", "refresh_google")));
+
+        var result = await _controller.GoogleLogin(new GoogleLoginDto { GoogleIdToken = "some_id_token" }, CancellationToken.None);
+
+        var ok = Assert.IsType<OkObjectResult>(result);
+        Assert.IsType<TokenPair>(ok.Value);
     }
 }
 
