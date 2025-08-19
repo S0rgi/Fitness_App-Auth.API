@@ -69,14 +69,15 @@ namespace Gainly_Auth_API.Service
             return new AuthResult(true, null, tokens);
         }
 
-        public async Task LogoutAsync(string refreshToken, CancellationToken cancellationToken = default)
+        public async Task<bool> LogoutAsync(string refreshToken, CancellationToken cancellationToken = default)
         {
             var token = await _refreshTokens.FindByTokenAsync(refreshToken, cancellationToken);
             if (token == null)
-                throw new Exception("Refresh token not found");
+                return false;
 
             token.IsRevoked = true;
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(cancellationToken);
+            return true;
         }
         public async Task<TokenPair> RefreshTokenAsync(string refreshToken, CancellationToken cancellationToken = default)
         {

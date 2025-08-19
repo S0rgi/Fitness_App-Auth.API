@@ -23,7 +23,7 @@ namespace Gainly_Auth_API.Interfaces
         /// <summary>
         /// Отзывает refresh-токен (выход из системы).
         /// </summary>
-        Task LogoutAsync(string refreshToken, CancellationToken cancellationToken = default);
+        Task<bool> LogoutAsync(string refreshToken, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Проверяет валидность токена.

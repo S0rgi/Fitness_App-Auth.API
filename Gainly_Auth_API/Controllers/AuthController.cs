@@ -53,9 +53,12 @@ namespace Gainly_Auth_API.Controllers
 
         [HttpDelete("logout")]
         [ProducesResponseType(typeof(void), StatusCodes.Status204NoContent)]
-        public async Task<IActionResult> Logout([FromBody] string refreshToken, CancellationToken ct)
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Logout([FromBody] RefreshDto dto, CancellationToken ct)
         {
-            await _authService.LogoutAsync(refreshToken, ct);
+            var loggedOut = await _authService.LogoutAsync(dto.RefreshToken, ct);
+            if (!loggedOut)
+                return Problem(title: "Not Found", detail: "Refresh token not found", statusCode: StatusCodes.Status404NotFound);
             return NoContent();
         }
 
