@@ -13,7 +13,7 @@ services:
       UseTestDb: "true"
       # ConnectionStrings__AuthDb_test: ${ConnectionStrings__AuthDb_test}
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/swagger/index.html || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health/ping || exit 1"]
       interval: 5s
       timeout: 3s
       retries: 20
