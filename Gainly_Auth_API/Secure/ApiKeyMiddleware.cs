@@ -25,7 +25,7 @@ public class ApiKeyMiddleware
         if (_environment.IsDevelopment())
         {
             var path = context.Request.Path.Value ?? string.Empty;
-            if (path.StartsWith("/swagger") || path == "/" || path.StartsWith("/health"))
+            if (path.StartsWith("/swagger") || path == "/" || path.StartsWith("/health") || path.EndsWith("/swagger.json"))
             {
                 await _next(context);
                 return;
