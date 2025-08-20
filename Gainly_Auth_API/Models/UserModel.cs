@@ -6,6 +6,7 @@ namespace Gainly_Auth_API.Models
         public string Email { get; set; }
         public string PasswordHash { get; set; }
         public string Username { get; set; }
+        public string TGUsername {get; set; }
         public DateTime RegistrationDate { get; set; }
         public List<Friendship> Friendships { get; set; }
     }

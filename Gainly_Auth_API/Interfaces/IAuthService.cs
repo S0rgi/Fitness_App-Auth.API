@@ -39,6 +39,11 @@ namespace Gainly_Auth_API.Interfaces
         /// Логин или регистрация через google api
         /// </summary>
         Task<AuthResult> GoogleLoginAsync(string GoogleIdToken, CancellationToken cancellationToken = default);
+        
+        /// <summary>
+        /// Логин или регистрация через tg login
+        /// </summary>
+        Task<AuthResult> TGLoginAsync(string tgLogin, CancellationToken cancellationToken = default);
     }
 
     public record TokenPair(string AccessToken, string RefreshToken);

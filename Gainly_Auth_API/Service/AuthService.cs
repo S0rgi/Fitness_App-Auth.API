@@ -152,7 +152,7 @@ namespace Gainly_Auth_API.Service
             {
                 Email = payload.Email,
                 Username = await _usernameGenerator.GenerateAsync(payload.Email),
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword("string"),
+                PasswordHash = "google_login",
                 RegistrationDate = DateTime.UtcNow
             };
             await _users.AddAsync(user, cancellationToken);
@@ -161,6 +161,30 @@ namespace Gainly_Auth_API.Service
             var tokens = await _tokenGen.GenerateTokensAsync(user);
             return new AuthResult(true, null, tokens);
         }
+
+        public async Task<AuthResult> TGLoginAsync(string tgLogin, CancellationToken cancellationToken = default)
+        {
+            var user = await _users.FindByTgLoginAsync(tgLogin, cancellationToken);
+            if (user == null)
+            {
+                user = new User
+                {
+                    Username = await _usernameGenerator.GenerateAsync(tgLogin),
+                    Email= string.Empty,
+                    PasswordHash = string.Empty,
+                    RegistrationDate = DateTime.UtcNow,
+                    TGUsername = tgLogin
+                };
+
+                await _users.AddAsync(user, cancellationToken);
+                await _users.SaveChangesAsync(cancellationToken);
+
+            }
+            var tokens = await _tokenGen.GenerateTokensAsync(user);
+            return new AuthResult(true, null, tokens);
+            
+        }
+
     }
 }
 

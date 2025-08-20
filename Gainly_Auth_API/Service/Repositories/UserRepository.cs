@@ -21,6 +21,7 @@ namespace Gainly_Auth_API.Service.Repositories
         public Task<User?> FindByEmailAsync(string email, CancellationToken ct = default) => _context.Users.FirstOrDefaultAsync(u => u.Email == email, ct);
         public Task<User?> FindByIdAsync(Guid id, CancellationToken ct = default) => _context.Users.FindAsync([id], ct).AsTask();
         public Task<User?> FindByUsernameAsync(string username, CancellationToken ct = default) => _context.Users.FirstOrDefaultAsync(u => u.Username == username, ct);
+        public Task<User?> FindByTgLoginAsync(string TGUsername, CancellationToken ct = default)=>_context.Users.FirstOrDefaultAsync(u => u.TGUsername == TGUsername, ct);
         public async Task AddAsync(User user, CancellationToken ct = default)
         {
             await _context.Users.AddAsync(user);

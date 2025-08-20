@@ -10,6 +10,7 @@ namespace Gainly_Auth_API.Interfaces
         Task<bool> ExistsByEmailAsync(string email, CancellationToken ct = default);
         Task<bool> ExistsByUsernameAsync(string username, CancellationToken ct = default);
         Task<User?> FindByEmailAsync(string email, CancellationToken ct = default);
+        Task<User?> FindByTgLoginAsync(string TGUsername, CancellationToken ct = default);
         Task<User?> FindByIdAsync(Guid id, CancellationToken ct = default);
         Task<User?> FindByUsernameAsync(string username, CancellationToken ct = default);
         Task AddAsync(User user, CancellationToken ct = default);

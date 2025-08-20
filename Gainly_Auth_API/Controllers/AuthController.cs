@@ -93,7 +93,20 @@ namespace Gainly_Auth_API.Controllers
                 return ValidationProblem(ModelState);
             var result = await _authService.GoogleLoginAsync(request.GoogleIdToken, ct);
             if (result.Success) return Ok(result.Tokens);
-            
+
+            return Problem(title: "Login Failed", detail: result.ErrorMessage, statusCode: StatusCodes.Status400BadRequest);
+
+        }
+        [HttpPost("tglogin")]
+        [ProducesResponseType(typeof(TokenPair), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> TGLogin([FromBody] TgLoginDto request, CancellationToken ct)
+        {
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
+            var result = await _authService.TGLoginAsync(request.TGLogin, ct);
+            if (result.Success) return Ok(result.Tokens);
+
             return Problem(title: "Login Failed", detail: result.ErrorMessage, statusCode: StatusCodes.Status400BadRequest);
 
         }
