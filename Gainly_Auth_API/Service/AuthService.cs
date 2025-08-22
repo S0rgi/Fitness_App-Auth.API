@@ -26,9 +26,9 @@ namespace Gainly_Auth_API.Service
         private readonly IUserAuthenticationService _tokenGen;
         private readonly ITokenService _tokenService;
         private readonly IUsernameGenerator _usernameGenerator;
-        private readonly TelegramAuthValidator _telegramAuthValidator;
+        private readonly ITelegramAuthValidator _telegramAuthValidator;
 
-        public AuthService(INotificationPublisher publisher, IUserAuthenticationService tokenGen, ITokenService tokenService, IUsernameGenerator usernameGenerator, IUserRepository users, IRefreshTokenRepository refreshTokens, TelegramAuthValidator telegramAuthValidator)
+        public AuthService(INotificationPublisher publisher, IUserAuthenticationService tokenGen, ITokenService tokenService, IUsernameGenerator usernameGenerator, IUserRepository users, IRefreshTokenRepository refreshTokens, ITelegramAuthValidator telegramAuthValidator)
         {
             _publisher = publisher;
             _tokenGen = tokenGen;

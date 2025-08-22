@@ -54,7 +54,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 Encoding.UTF8.GetBytes(builder.Configuration["Jwt:SecretKey"]))
         };
     });
-builder.Services.AddScoped<TelegramAuthValidator>(sp =>
+builder.Services.AddScoped<ITelegramAuthValidator>(sp =>
 {
     var config = sp.GetRequiredService<IConfiguration>();
     var botToken = config["TelegramBotToken"];

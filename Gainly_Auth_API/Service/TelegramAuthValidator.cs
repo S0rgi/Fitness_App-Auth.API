@@ -2,9 +2,10 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Web;
 using Gainly_Auth_API.Dtos;
+using Gainly_Auth_API.Interfaces;
 using Microsoft.AspNetCore.WebUtilities;
 namespace Gainly_Auth_API.Service;
-public  class TelegramAuthValidator
+public  class TelegramAuthValidator :ITelegramAuthValidator
 {
     private readonly string botToken;
     public TelegramAuthValidator(string _botToken)

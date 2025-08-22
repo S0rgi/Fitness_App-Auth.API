@@ -13,16 +13,15 @@ namespace Gainly_Auth.Tests;
 public class AuthServiceTests
 {
 	private static AuthService CreateService(
-		AuthDbContext db,
 		Mock<IUserRepository> users,
 		Mock<IRefreshTokenRepository> refreshTokens,
 		Mock<INotificationPublisher> publisher,
 		Mock<IUserAuthenticationService> tokenGen,
 		Mock<ITokenService> tokenService,
-		Mock<IUsernameGenerator> usernameGenerator)
+		Mock<IUsernameGenerator> usernameGenerator,
+		Mock<ITelegramAuthValidator> telegramAuthValidator)
 	{
-		var config = new ConfigurationBuilder().Build();
-		return new AuthService(db, publisher.Object, config, tokenGen.Object, tokenService.Object, usernameGenerator.Object, users.Object, refreshTokens.Object);
+		return new AuthService( publisher.Object, tokenGen.Object, tokenService.Object, usernameGenerator.Object, users.Object, refreshTokens.Object, telegramAuthValidator.Object);
 	}
 
 	private static AuthDbContext CreateInMemoryDb()
@@ -43,6 +42,7 @@ public class AuthServiceTests
 		var tokenGen = new Mock<IUserAuthenticationService>();
 		var tokenService = new Mock<ITokenService>();
 		var usernameGen = new Mock<IUsernameGenerator>();
+		var telegramAuthValidator = new Mock<ITelegramAuthValidator>();
 
 		users.Setup(r => r.ExistsByEmailAsync("e@mail.com", It.IsAny<CancellationToken>())).ReturnsAsync(false);
 		users.Setup(r => r.AddAsync(It.IsAny<User>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
@@ -51,7 +51,7 @@ public class AuthServiceTests
 		tokenGen.Setup(t => t.GenerateTokensAsync(It.IsAny<User>()))
 			.ReturnsAsync(new TokenPair("a", "r"));
 
-		var service = CreateService(db, users, refreshTokens, publisher, tokenGen, tokenService, usernameGen);
+		var service = CreateService( users, refreshTokens, publisher, tokenGen, tokenService, usernameGen,telegramAuthValidator);
         var result = await service.RegisterAsync(new RegisterDto { Email = "e@mail.com", Password = "pass" });
 
 		Assert.True(result.Success);
@@ -68,12 +68,13 @@ public class AuthServiceTests
 		var tokenGen = new Mock<IUserAuthenticationService>();
 		var tokenService = new Mock<ITokenService>();
 		var usernameGen = new Mock<IUsernameGenerator>();
+		var telegramAuthValidator = new Mock<ITelegramAuthValidator>();
 
 		var user = new User { Id = Guid.NewGuid(), Email = "e@mail.com", PasswordHash = BCrypt.Net.BCrypt.HashPassword("pass") };
 		users.Setup(r => r.FindByEmailAsync("e@mail.com", It.IsAny<CancellationToken>())).ReturnsAsync(user);
 		tokenGen.Setup(t => t.GenerateTokensAsync(user)).ReturnsAsync(new TokenPair("a", "r"));
 
-		var service = CreateService(db, users, refreshTokens, publisher, tokenGen, tokenService, usernameGen);
+		var service = CreateService( users, refreshTokens, publisher, tokenGen, tokenService, usernameGen,telegramAuthValidator);
         var result = await service.LoginAsync(new LoginDto { Email = "e@mail.com", Password = "pass" });
 
 		Assert.True(result.Success);
@@ -91,8 +92,9 @@ public class AuthServiceTests
 		var tokenGen = new Mock<IUserAuthenticationService>();
 		var tokenService = new Mock<ITokenService>();
 		var usernameGen = new Mock<IUsernameGenerator>();
+		var telegramAuthValidator = new Mock<ITelegramAuthValidator>();
 
-		var service = CreateService(db, users, refreshTokens, publisher, tokenGen, tokenService, usernameGen);
+		var service = CreateService( users, refreshTokens, publisher, tokenGen, tokenService, usernameGen,telegramAuthValidator);
 		var tokens = await service.RefreshTokenAsync("bad");
 		Assert.Null(tokens);
 	}
@@ -108,8 +110,9 @@ public class AuthServiceTests
 		var tokenService = new Mock<ITokenService>();
 		tokenService.Setup(s => s.ValidateAccessToken("t")).Returns(new System.Security.Claims.ClaimsPrincipal());
 		var usernameGen = new Mock<IUsernameGenerator>();
+		var telegramAuthValidator = new Mock<ITelegramAuthValidator>();
 
-		var service = CreateService(db, users, refreshTokens, publisher, tokenGen, tokenService, usernameGen);
+		var service = CreateService( users, refreshTokens, publisher, tokenGen, tokenService, usernameGen,telegramAuthValidator);
 		var validate = await service.ValidateTokenAsync("t");
 		Assert.True(validate.IsValid);
 	}
@@ -125,8 +128,9 @@ public class AuthServiceTests
 		var tokenGen = new Mock<IUserAuthenticationService>();
 		var tokenService = new Mock<ITokenService>();
 		var usernameGen = new Mock<IUsernameGenerator>();
+		var telegramAuthValidator = new Mock<ITelegramAuthValidator>();
 
-		var service = CreateService(db, users, refreshTokens, publisher, tokenGen, tokenService, usernameGen);
+		var service = CreateService( users, refreshTokens, publisher, tokenGen, tokenService, usernameGen,telegramAuthValidator);
 		var res = await service.SendEmailCodeAsync("e@mail.com");
 		Assert.False(res.IsValid);
 	}
