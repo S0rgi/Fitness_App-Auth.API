@@ -54,6 +54,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 Encoding.UTF8.GetBytes(builder.Configuration["Jwt:SecretKey"]))
         };
     });
+builder.Services.AddScoped<TelegramAuthValidator>(sp =>
+{
+    var config = sp.GetRequiredService<IConfiguration>();
+    var botToken = config["TelegramBotToken"];
+    return new TelegramAuthValidator(botToken);
+});
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IUserAuthenticationService, UserAuthenticationService>();
 builder.Services.AddScoped<IUsernameGenerator, UsernameGenerator>();

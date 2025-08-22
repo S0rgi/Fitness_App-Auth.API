@@ -1,3 +1,4 @@
+using Gainly_Auth_API.Dtos;
 using Gainly_Auth_API.Models;
 using System.Security.Claims;
 
@@ -43,7 +44,7 @@ namespace Gainly_Auth_API.Interfaces
         /// <summary>
         /// Логин или регистрация через tg login
         /// </summary>
-        Task<AuthResult> TGLoginAsync(string tgLogin, CancellationToken cancellationToken = default);
+        Task<AuthResult> TGLoginAsync(TelegramInitDataDto initdata, CancellationToken cancellationToken = default);
     }
 
     public record TokenPair(string AccessToken, string RefreshToken);
