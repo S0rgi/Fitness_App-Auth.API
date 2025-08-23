@@ -169,12 +169,11 @@ namespace Gainly_Auth_API.Service
             if (!_telegramAuthValidator.ValidateInitData(req.initDataRaw, cancellationToken))
                 return new AuthResult(false, "init data not valid", null);
 
-            // ⬇️ Чётко видно, где получаем ID
             var tgUser = ExtractTelegramUser(req.initDataRaw);
                 if (tgUser == null)
                     return new AuthResult(false, "user not found in initData", null);
             string tgLogin = tgUser.Username;
-            var user = await _users.FindByTgLoginAsync(tgLogin, cancellationToken);
+            var user = await _users.FindByTgLoginAsync(tgUser.Id.ToString(), cancellationToken);
             if (user == null)
             {
                 user = new User
