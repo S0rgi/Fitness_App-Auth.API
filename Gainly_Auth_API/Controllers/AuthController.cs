@@ -74,16 +74,24 @@ namespace Gainly_Auth_API.Controllers
             return Problem(title: "Unauthorized", detail: result.Reason, statusCode: StatusCodes.Status401Unauthorized);
         }
 
-        [HttpGet("email_code/{email}")]
-        [ProducesResponseType(typeof(int), StatusCodes.Status200OK)]
+        [HttpPost("email_code/{email}")]
+        [ProducesResponseType(typeof(void), StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> SendEmailCode(string email, CancellationToken ct)
         {
             var res = await _authService.SendEmailCodeAsync(email, ct);
-            if (res.IsValid) return Ok(res.code);
-            return Problem(title: "Email busy", detail: "Email уже занят", statusCode: StatusCodes.Status400BadRequest);
+            if (res.IsValid) return NoContent();
+            return Problem(title: " Send Email code", detail: res.ErrorMessage, statusCode: StatusCodes.Status400BadRequest);
         }
-
+        [HttpPost("email_code/verify")]
+        [ProducesResponseType(typeof(void), StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> CheckEmailCode(CheckEmailDto req, CancellationToken ct)
+        {
+            var res = await _authService.CheckEmailCodeAsync(req, ct);
+            if (res.IsValid) return NoContent();
+            return Problem(title: "Check email code", detail: res.ErrorMessage, statusCode: StatusCodes.Status400BadRequest);
+        }
         [HttpPost("google")]
         [ProducesResponseType(typeof(TokenPair), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]

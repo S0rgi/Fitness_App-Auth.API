@@ -8,6 +8,7 @@ namespace Gainly_Auth_API.Data
         public AuthDbContext(DbContextOptions<AuthDbContext> options) : base(options) { }
 
         public DbSet<User> Users { get; set; }
+        public DbSet<EmailConfirmation> EmailConfirmations { get; set; }
         public DbSet<Friendship> Friendships { get; set; }
         public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 

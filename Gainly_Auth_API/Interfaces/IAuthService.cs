@@ -37,6 +37,11 @@ namespace Gainly_Auth_API.Interfaces
         Task<EmailCodeResult> SendEmailCodeAsync(string email, CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Проверяет  код подтверждения на e-mail.
+        /// </summary>
+        Task<EmailCodeResult> CheckEmailCodeAsync(CheckEmailDto dto, CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Логин или регистрация через google api
         /// </summary>
         Task<AuthResult> GoogleLoginAsync(string GoogleIdToken, CancellationToken cancellationToken = default);
@@ -50,7 +55,7 @@ namespace Gainly_Auth_API.Interfaces
     public record TokenPair(string AccessToken, string RefreshToken);
     public record AuthResult(bool Success, string? ErrorMessage, TokenPair? Tokens);
     public record TokenValidationResult(bool IsValid, string? Reason);
-    public record EmailCodeResult(bool IsValid, int? code);
+    public record EmailCodeResult(bool IsValid, string? ErrorMessage);
 }
 
 

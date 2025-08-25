@@ -44,6 +44,11 @@ namespace Gainly_Auth_API.Service
             if (await _users.ExistsByEmailAsync(request.Email, cancellationToken))
                 return new AuthResult(false, "Email is already registered", null);
 
+            // Проверка подтверждения email
+            var confirmation = await _users.GetLastEmailConfirmationAsync(request.Email, cancellationToken);
+            if (confirmation == null || !confirmation.IsConfirmed)
+                return new AuthResult(false, "Email not confirmed", null);
+
             var user = new User
             {
                 Email = request.Email,
@@ -120,17 +125,31 @@ namespace Gainly_Auth_API.Service
         public async Task<EmailCodeResult> SendEmailCodeAsync(string email, CancellationToken cancellationToken = default)
         {
             if (await _users.ExistsByEmailAsync(email, cancellationToken))
-                return new EmailCodeResult(false, null);
-            var code = new Random().Next(10000, 99999);
+                return new EmailCodeResult(false, "email busy");
+            var code = new Random().Next(10000, 99999).ToString();
+
+            // Сохраняем код в БД
+            var confirmation = new EmailConfirmation
+            {
+                Id = Guid.NewGuid(),
+                Email = email,
+                Code = code,
+                Expiration = DateTime.UtcNow.AddMinutes(10),
+                IsConfirmed = false,
+                CreatedAt = DateTime.UtcNow
+            };
+            await _users.AddEmailConfirmationAsync(confirmation, cancellationToken);
+            await _users.SaveChangesAsync(cancellationToken);
+
             var notification = new NotificationMessage
             {
                 Type = "code",
-                Action = code.ToString(),
+                Action = code,
                 SenderName = "none",
                 RecipientEmail = email
             };
             _publisher.PublishAsync(JsonSerializer.Serialize(notification), "code");
-            return new EmailCodeResult(true, code);
+            return new EmailCodeResult(true, null);
         }
         public async Task<AuthResult> GoogleLoginAsync(string GoogleIdToken, CancellationToken cancellationToken = default)
         {
@@ -209,6 +228,16 @@ namespace Gainly_Auth_API.Service
             return JsonSerializer.Deserialize<TgUserDto>(userJson);
         }
 
+        public async Task<EmailCodeResult> CheckEmailCodeAsync(CheckEmailDto dto, CancellationToken cancellationToken = default)
+        {
+            var confirmation = await _users.GetEmailConfirmationAsync(dto.email, dto.code.ToString(), cancellationToken);
+            if (confirmation == null || confirmation.Expiration < DateTime.UtcNow)
+                return new EmailCodeResult(false, "Invalid or expired code");
+
+            confirmation.IsConfirmed = true;
+            await _users.SaveChangesAsync(cancellationToken);
+            return new EmailCodeResult(true, null);
+        }
     }
     public class TgUserDto
     {
