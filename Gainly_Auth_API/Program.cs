@@ -19,6 +19,17 @@ builder.Configuration
     .SetBasePath(Directory.GetCurrentDirectory())
     .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
     .AddEnvironmentVariables(); // <-- обязательно
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend",
+        policy =>
+        {
+            policy.AllowAnyOrigin()
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        });
+});
+
 builder.Services.AddGrpc();
 builder.Services.AddGrpcReflection();
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -149,7 +160,7 @@ app.UseSwaggerUI(c =>
      c.SwaggerEndpoint("/swagger/v1/swagger.json", "Auth API v1");
     c.RoutePrefix = "swagger";
 });
-
+app.UseCors("AllowFrontend");
 app.UseMiddleware<ApiKeyMiddleware>();
 
 app.UseAuthentication();
