@@ -47,6 +47,8 @@ public class AuthServiceTests
 		users.Setup(r => r.ExistsByEmailAsync("e@mail.com", It.IsAny<CancellationToken>())).ReturnsAsync(false);
 		users.Setup(r => r.AddAsync(It.IsAny<User>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 		users.Setup(r => r.SaveChangesAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+		users.Setup(r => r.GetLastEmailConfirmationAsync("e@mail.com", It.IsAny<CancellationToken>()))
+			.ReturnsAsync(new EmailConfirmation { IsConfirmed = true });
 		usernameGen.Setup(g => g.GenerateAsync("e@mail.com")).ReturnsAsync("user1");
 		tokenGen.Setup(t => t.GenerateTokensAsync(It.IsAny<User>()))
 			.ReturnsAsync(new TokenPair("a", "r"));

@@ -79,15 +79,14 @@ public class AuthControllerTests
     }
 
     [Fact]
-    public async Task SendEmailCode_ReturnsOk_WithCode()
+    public async Task SendEmailCode_ReturnsNoContent_WhenSuccess()
     {
         _authServiceMock
             .Setup(s => s.SendEmailCodeAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new EmailCodeResult(true, null));
 
         var result = await _controller.SendEmailCode("email@mail.com", CancellationToken.None);
-        var ok = Assert.IsType<OkObjectResult>(result);
-        Assert.Equal(12345, ok.Value);
+        Assert.IsType<NoContentResult>(result);
     }
 
     [Fact]
