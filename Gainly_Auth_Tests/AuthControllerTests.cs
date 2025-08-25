@@ -83,7 +83,7 @@ public class AuthControllerTests
     {
         _authServiceMock
             .Setup(s => s.SendEmailCodeAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new EmailCodeResult(true, 12345));
+            .ReturnsAsync(new EmailCodeResult(true, null));
 
         var result = await _controller.SendEmailCode("email@mail.com", CancellationToken.None);
         var ok = Assert.IsType<OkObjectResult>(result);
