@@ -97,7 +97,7 @@ public class FriendController : ControllerBase
     [Authorize]
     [HttpGet("get-users")]
     [ProducesResponseType(typeof(List<FuzzynickResponse>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetUsers([FromBody] FuzzynickRequest fz, CancellationToken ct)
+    public async Task<IActionResult> GetUsers([FromQuery] FuzzynickRequest fz, CancellationToken ct)
     {
         var Users = await _friendshipService.GetUsersAsync(fz.nickname, ct);
         List<FuzzynickResponse> res = new();
