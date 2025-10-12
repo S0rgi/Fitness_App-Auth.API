@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Gainly_Auth_API.Data;
 using Gainly_Auth_API.Interfaces;
 using Gainly_Auth_API.Models;
+using Gainly_Auth_API.Dtos;
 
 namespace Gainly_Auth_API.Service.Repositories
 {
@@ -40,22 +41,36 @@ namespace Gainly_Auth_API.Service.Repositories
             return Task.CompletedTask;
         }
 
-        public async Task<IReadOnlyList<object>> GetPendingRequestsAsync(Guid userId, CancellationToken ct = default)
+        public async Task<IReadOnlyList<FriendsRequestListDto>> GetPendingRequestsAsync(Guid userId, CancellationToken ct = default)
         {
-            return await _context.Friendships
+            List<FriendsRequestListDto> res = await _context.Friendships
                 .Include(f => f.User)
                 .Where(f => f.FriendId == userId && f.Status == FriendshipStatus.Pending)
-                .Select(f => new { f.Id, FromUserId = f.UserId, FromUsername = f.User.Username })
+                .Select(f => new FriendsRequestListDto
+                {
+                    FriendshipId = f.Id,
+                    FromUserId = f.UserId,
+                    FromUsername = f.User.Username
+                })
                 .ToListAsync(ct);
+
+            return res;
         }
 
-        public async Task<IReadOnlyList<object>> GetFriendsAsync(Guid userId, CancellationToken ct = default)
+        public async Task<IReadOnlyList<FuzzynickResponse>> GetFriendsAsync(Guid userId, CancellationToken ct = default)
         {
-            return await _context.Friendships
+            var result = await _context.Friendships
                 .Where(f => (f.UserId == userId || f.FriendId == userId) && f.Status == FriendshipStatus.Accepted)
                 .Select(f => f.UserId == userId ? f.Friend : f.User)
-                .Select(u => new { u.Id, u.Username, u.Email })
+                .Select(u => new FuzzynickResponse
+                {
+                    Id = u.Id,
+                    Username = u.Username,
+                    RegistrationDate = u.RegistrationDate
+                })
                 .ToListAsync(ct);
+
+            return result;
         }
 
         public Task SaveChangesAsync(CancellationToken ct = default) => _context.SaveChangesAsync(ct);

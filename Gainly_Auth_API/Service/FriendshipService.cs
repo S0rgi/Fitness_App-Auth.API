@@ -1,4 +1,5 @@
 using Gainly_Auth_API.Data;
+using Gainly_Auth_API.Dtos;
 using Gainly_Auth_API.Interfaces;
 using Gainly_Auth_API.Models;
 using Microsoft.EntityFrameworkCore;
@@ -72,12 +73,12 @@ public class FriendshipService : IFriendshipService
         return (friendship, friendship.User, friendship.Friend);
     }
 
-    public async Task<IReadOnlyList<object>> GetPendingRequestsAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<FriendsRequestListDto>> GetPendingRequestsAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         return await _friendships.GetPendingRequestsAsync(userId, cancellationToken);
     }
 
-    public async Task<IReadOnlyList<object>> GetFriendsAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<FuzzynickResponse>> GetFriendsAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         return await _friendships.GetFriendsAsync(userId, cancellationToken);
     }

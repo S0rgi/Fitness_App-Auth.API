@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Gainly_Auth_API.Models;
+using Gainly_Auth_API.Dtos;
 
 namespace Gainly_Auth_API.Interfaces
 {
@@ -11,8 +12,8 @@ namespace Gainly_Auth_API.Interfaces
         Task<Friendship?> FindByIdAsync(Guid friendshipId, CancellationToken ct = default);
         Task AddAsync(Friendship friendship, CancellationToken ct = default);
         Task RemoveAsync(Friendship friendship, CancellationToken ct = default);
-        Task<IReadOnlyList<object>> GetPendingRequestsAsync(Guid userId, CancellationToken ct = default);
-        Task<IReadOnlyList<object>> GetFriendsAsync(Guid userId, CancellationToken ct = default);
+        Task<IReadOnlyList<FriendsRequestListDto>> GetPendingRequestsAsync(Guid userId, CancellationToken ct = default);
+        Task<IReadOnlyList<FuzzynickResponse>> GetFriendsAsync(Guid userId, CancellationToken ct = default);
         Task SaveChangesAsync(CancellationToken ct = default);
     }
 }

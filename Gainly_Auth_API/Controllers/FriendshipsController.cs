@@ -18,6 +18,8 @@ public class FriendController : ControllerBase
 
     [Authorize]
     [HttpPost("send-request-by-username/{friendUsername}")]
+    [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> SendFriendRequestByUsername(string friendUsername, CancellationToken ct)
     {
         var sub = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -36,6 +38,8 @@ public class FriendController : ControllerBase
 
     [Authorize]
     [HttpPost("respond/{friendshipId}")]
+    [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> RespondToFriendRequest(Guid friendshipId, [FromQuery] bool accept, CancellationToken ct)
     {
         var sub = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -52,6 +56,8 @@ public class FriendController : ControllerBase
 
     [Authorize]
     [HttpGet("pending")]
+    [ProducesResponseType(typeof(List<FriendsRequestListDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetPendingRequests(CancellationToken ct)
     {
         var sub = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -63,6 +69,8 @@ public class FriendController : ControllerBase
 
     [Authorize]
     [HttpGet("list")]
+    [ProducesResponseType(typeof(List<FuzzynickResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetFriends(CancellationToken ct)
     {
         var sub = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -74,6 +82,8 @@ public class FriendController : ControllerBase
 
     [Authorize]
     [HttpDelete("remove-friend/{friendUsername}")]
+    [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> RemoveFriend(string friendUsername, CancellationToken ct)
     {
         var sub = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -86,7 +96,8 @@ public class FriendController : ControllerBase
 
     [Authorize]
     [HttpGet("get-users")]
-    public async Task<IActionResult> GetUsers([FromBody] FuzzynickRequest fz , CancellationToken ct)
+    [ProducesResponseType(typeof(List<FuzzynickResponse>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetUsers([FromBody] FuzzynickRequest fz, CancellationToken ct)
     {
         var Users = await _friendshipService.GetUsersAsync(fz.nickname, ct);
         List<FuzzynickResponse> res = new();
