@@ -8,6 +8,7 @@ public interface IFriendshipService
     Task<IReadOnlyList<object>> GetPendingRequestsAsync(Guid userId, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<object>> GetFriendsAsync(Guid userId, CancellationToken cancellationToken = default);
     Task<bool> RemoveFriendAsync(Guid userId, string friendUsername, CancellationToken cancellationToken = default);
+    Task<List<User>> GetUsersAsync(string fuzzynick, CancellationToken cancellationToken = default);
 }
 
 

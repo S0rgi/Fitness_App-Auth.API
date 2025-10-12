@@ -2,7 +2,9 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Gainly_Auth_API.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using Gainly_Auth_API.Dtos;
 namespace Gainly_Auth_API.Controllers;
+
 [ApiController]
 [Route("api/friends")]
 public class FriendController : ControllerBase
@@ -69,7 +71,7 @@ public class FriendController : ControllerBase
         var friends = await _friendshipService.GetFriendsAsync(userId, ct);
         return Ok(friends);
     }
-    
+
     [Authorize]
     [HttpDelete("remove-friend/{friendUsername}")]
     public async Task<IActionResult> RemoveFriend(string friendUsername, CancellationToken ct)
@@ -82,6 +84,23 @@ public class FriendController : ControllerBase
         return Ok("Пользователь удалён из друзей.");
     }
 
+    [Authorize]
+    [HttpGet("get-users")]
+    public async Task<IActionResult> GetUsers([FromBody] FuzzynickRequest fz , CancellationToken ct)
+    {
+        var Users = await _friendshipService.GetUsersAsync(fz.nickname, ct);
+        List<FuzzynickResponse> res = new();
+        foreach (var user in Users)
+        {
+            res.Add(new FuzzynickResponse
+            {
+                Username = user.Username,
+                Id = user.Id,
+                RegistrationDate = user.RegistrationDate
+            });
+        }
+        return Ok(res);
+    }
 }
 
 

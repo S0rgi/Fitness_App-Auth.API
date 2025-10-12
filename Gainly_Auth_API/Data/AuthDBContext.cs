@@ -14,6 +14,7 @@ namespace Gainly_Auth_API.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.HasPostgresExtension("pg_trgm");
             modelBuilder.Entity<Friendship>()
                 .HasOne(f => f.User)
                 .WithMany(u => u.Friendships)
@@ -25,6 +26,10 @@ namespace Gainly_Auth_API.Data
                 .WithMany()
                 .HasForeignKey(f => f.FriendId)
                 .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Username)
+                .HasMethod("gin")
+                .HasOperators("gin_trgm_ops");     
         }
     }
 }

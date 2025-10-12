@@ -19,6 +19,7 @@ namespace Gainly_Auth_API.Interfaces
         Task AddEmailConfirmationAsync(EmailConfirmation confirmation, CancellationToken ct = default);
         Task<EmailConfirmation?> GetEmailConfirmationAsync(string email, string code, CancellationToken ct = default);
         Task<EmailConfirmation?> GetLastEmailConfirmationAsync(string email, CancellationToken ct = default);
+        Task <List<User>> GetUsersAsync(string fuzzynick, CancellationToken ct = default);
     }
 }
 
