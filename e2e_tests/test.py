@@ -7,7 +7,6 @@ API_KEY_HEADER = os.getenv("ApiKey__HeaderName", "")
 API_KEY_VALUE = os.getenv("ApiKey__Key", "")
 def api(method, path, **kwargs):
     headers = kwargs.pop("headers", {})
-    headers[API_KEY_HEADER] = API_KEY_VALUE
     headers["Accept"] = "application/json"
     if "json" in kwargs:
         headers["Content-Type"] = "application/json"
@@ -42,7 +41,7 @@ def test_auth_flow():
 
     # 6) DeleteUser
     r = api("DELETE", f"/api/user/DeleteUser?email={email}")
-    assert r.status_code == 200, f"Expected 200, got {r.status_code}"
+    assert r.status_code == 204, f"Expected 204, got {r.status_code}"
 
     # 7) Ensure not exists
     r = api("GET", f"/api/user/UserExist?email={email}")
