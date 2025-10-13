@@ -45,4 +45,31 @@ public  class TelegramAuthValidator :ITelegramAuthValidator
         return computedHash == receivedHash;
     }
 
+    public bool ValidateInitData(TelegramInitDataDto request,CancellationToken cancellationToken)
+    {
+                var data = new Dictionary<string, string>();
+
+        data["auth_date"] = request.AuthDate;
+        if (!string.IsNullOrEmpty(request.FirstName)) data["first_name"] = request.FirstName;
+        if (!string.IsNullOrEmpty(request.Id.ToString())) data["id"] = request.Id.ToString();
+        //if (!string.IsNullOrEmpty(request.LastName)) data["last_name"] = request.LastName;
+        if (!string.IsNullOrEmpty(request.PhotoUrl)) data["photo_url"] = request.PhotoUrl;
+        if (!string.IsNullOrEmpty(request.Username)) data["username"] = request.Username;
+
+        var sorted = data.OrderBy(kv => kv.Key);
+
+        // Формируем check_string
+        var checkString = string.Join("\n", sorted.Select(kv => $"{kv.Key}={kv.Value}"));
+
+        // SHA256(bot_token)
+        using var sha = SHA256.Create();
+        var secretKey = sha.ComputeHash(Encoding.UTF8.GetBytes(botToken));
+
+        // HMAC-SHA256(check_string, secretKey)
+        using var hmac = new HMACSHA256(secretKey);
+        var hashBytes = hmac.ComputeHash(Encoding.UTF8.GetBytes(checkString));
+        var computedHash = BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
+
+        return computedHash == request.Hash;
+    }
 }

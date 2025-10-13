@@ -181,8 +181,8 @@ namespace Gainly_Auth_API.Service
             return new AuthResult(true, null, tokens);
         }
 
-        public async Task<AuthResult> TGLoginAsync(
-            TelegramInitDataDto req,
+        public async Task<AuthResult> TGLoginRawAsync(
+            TelegramInitDataRawDto req,
             CancellationToken cancellationToken = default)
         {
             if (!_telegramAuthValidator.ValidateInitData(req.initDataRaw, cancellationToken))
@@ -238,6 +238,37 @@ namespace Gainly_Auth_API.Service
             await _users.SaveChangesAsync(cancellationToken);
             return new EmailCodeResult(true, null);
         }
+
+        public async Task<AuthResult> TGLoginAsync(TelegramInitDataDto request, CancellationToken cancellationToken)
+        {
+            _telegramAuthValidator.ValidateInitData(request);
+            
+            if (!_telegramAuthValidator.ValidateInitData(request))
+                return new AuthResult(false, "init data not valid", null);
+
+
+            string tgLogin = request.Username;
+            var user = await _users.FindByTgLoginAsync(request.Id.ToString(), cancellationToken);
+            if (user == null)
+            {
+                user = new User
+                {
+                    Username = await _usernameGenerator.GenerateAsync(tgLogin),
+                    Email = string.Empty,
+                    PasswordHash = string.Empty,
+                    RegistrationDate = DateTime.UtcNow,
+                    TGUsername = request.Id.ToString()
+                };
+
+                await _users.AddAsync(user, cancellationToken);
+                await _users.SaveChangesAsync(cancellationToken);
+            }
+
+            var tokens = await _tokenGen.GenerateTokensAsync(user);
+            return new AuthResult(true, null, tokens);
+
+        }
+
     }
     public class TgUserDto
     {

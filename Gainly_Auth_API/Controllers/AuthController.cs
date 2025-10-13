@@ -108,7 +108,20 @@ namespace Gainly_Auth_API.Controllers
         [HttpPost("tglogin")]
         [ProducesResponseType(typeof(TokenPair), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> TGLogin([FromBody] TelegramInitDataDto request, CancellationToken ct)
+        public async Task<IActionResult> TGLogin([FromBody] TelegramInitDataRawDto request, CancellationToken ct)
+        {
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
+            var result = await _authService.TGLoginRawAsync(request, ct);
+            if (result.Success) return Ok(result.Tokens);
+
+            return Problem(title: "Login Failed", detail: result.ErrorMessage, statusCode: StatusCodes.Status400BadRequest);
+
+        }
+        [HttpPost("tgloginByWidget")]
+        [ProducesResponseType(typeof(TokenPair), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> tgloginByWidget([FromBody] TelegramInitDataDto request , CancellationToken ct)
         {
             if (!ModelState.IsValid)
                 return ValidationProblem(ModelState);
@@ -116,8 +129,8 @@ namespace Gainly_Auth_API.Controllers
             if (result.Success) return Ok(result.Tokens);
 
             return Problem(title: "Login Failed", detail: result.ErrorMessage, statusCode: StatusCodes.Status400BadRequest);
-
         }
+        
     }
 }
 
