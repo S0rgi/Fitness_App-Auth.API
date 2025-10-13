@@ -52,7 +52,7 @@ public  class TelegramAuthValidator :ITelegramAuthValidator
         data["auth_date"] = request.AuthDate;
         if (!string.IsNullOrEmpty(request.FirstName)) data["first_name"] = request.FirstName;
         if (!string.IsNullOrEmpty(request.Id.ToString())) data["id"] = request.Id.ToString();
-        //if (!string.IsNullOrEmpty(request.LastName)) data["last_name"] = request.LastName;
+        if (!string.IsNullOrEmpty(request.LastName)) data["last_name"] = request.LastName;
         if (!string.IsNullOrEmpty(request.PhotoUrl)) data["photo_url"] = request.PhotoUrl;
         if (!string.IsNullOrEmpty(request.Username)) data["username"] = request.Username;
 

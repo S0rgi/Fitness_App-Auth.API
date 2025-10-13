@@ -14,8 +14,8 @@ namespace Gainly_Auth_API.Dtos
         [JsonPropertyName("first_name")]
         public string FirstName { get; set; } = string.Empty;
 
-        // [JsonPropertyName("last_name")]
-        // public string LastName { get; set; } = string.Empty;
+        [JsonPropertyName("last_name")]
+        public string? LastName { get; set; } = string.Empty;
 
         [JsonPropertyName("username")]
         public string Username { get; set; } = string.Empty;
