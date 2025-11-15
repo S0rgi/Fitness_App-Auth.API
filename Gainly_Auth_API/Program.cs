@@ -162,12 +162,9 @@ app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseGrpcWeb(); // <-- Важно: до MapGrpcService!
-
 app.MapControllers();
 
 app.MapGrpcService<UserGrpcService>()
-   .EnableGrpcWeb()         // Включаем поддержку gRPC-Web
    .AllowAnonymous();       // Если нужно разрешить анонимный доступ
 
 app.MapGet("/", () => "Use a gRPC client to communicate");
