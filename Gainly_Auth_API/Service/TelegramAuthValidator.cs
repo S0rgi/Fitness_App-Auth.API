@@ -49,7 +49,7 @@ public  class TelegramAuthValidator :ITelegramAuthValidator
     {
                 var data = new Dictionary<string, string>();
 
-        data["auth_date"] = request.AuthDate;
+        data["auth_date"] = request.AuthDate.ToString();
         if (!string.IsNullOrEmpty(request.FirstName)) data["first_name"] = request.FirstName;
         if (!string.IsNullOrEmpty(request.Id.ToString())) data["id"] = request.Id.ToString();
         if (!string.IsNullOrEmpty(request.LastName)) data["last_name"] = request.LastName;
