@@ -47,9 +47,9 @@ public  class TelegramAuthValidator :ITelegramAuthValidator
 
     public bool ValidateInitData(TelegramInitDataDto request,CancellationToken cancellationToken)
     {
-                var data = new Dictionary<string, string>();
+        var data = new Dictionary<string, string>();
 
-        data["auth_date"] = request.AuthDate.ToString();
+        data["auth_date"] = request.AuthDate;
         if (!string.IsNullOrEmpty(request.FirstName)) data["first_name"] = request.FirstName;
         if (!string.IsNullOrEmpty(request.Id.ToString())) data["id"] = request.Id.ToString();
         if (!string.IsNullOrEmpty(request.LastName)) data["last_name"] = request.LastName;

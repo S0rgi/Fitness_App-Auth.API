@@ -24,7 +24,7 @@ namespace Gainly_Auth_API.Dtos
         public string? PhotoUrl { get; set; } = string.Empty;
 
         [JsonPropertyName("auth_date")]
-        public long AuthDate { get; set; }
+        public string AuthDate { get; set; } = string.Empty;
 
         [JsonPropertyName("hash")]
         public string Hash { get; set; } = string.Empty;
