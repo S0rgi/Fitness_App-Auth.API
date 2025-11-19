@@ -18,13 +18,13 @@ namespace Gainly_Auth_API.Dtos
         public string? LastName { get; set; } = string.Empty;
 
         [JsonPropertyName("username")]
-        public string Username { get; set; } = string.Empty;
+        public string? Username { get; set; } = string.Empty;
 
         [JsonPropertyName("photo_url")]
-        public string PhotoUrl { get; set; } = string.Empty;
+        public string? PhotoUrl { get; set; } = string.Empty;
 
         [JsonPropertyName("auth_date")]
-        public string AuthDate { get; set; } = string.Empty;
+        public long AuthDate { get; set; }
 
         [JsonPropertyName("hash")]
         public string Hash { get; set; } = string.Empty;
