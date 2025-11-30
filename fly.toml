@@ -1,24 +1,23 @@
-# fly.toml app configuration file generated for fitness-app-auth-api on 2025-05-06T12:19:41Z
+# fly.toml app configuration file generated for fitness-app-auth-api on 2025-11-30T13:59:37Z
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
 app = 'fitness-app-auth-api'
-primary_region = 'waw'
+primary_region = 'fra'
 
 [build]
 
 [http_service]
   internal_port = 8080
   force_https = true
+  auto_stop_machines = 'stop'
   auto_start_machines = true
-  auto_stop_machines = "stop"
   min_machines_running = 0
-
-  [http_service.http_options]
-    h2_streams = 100
+  processes = ['app']
 
 [[vm]]
   memory = '512mb'
   cpu_kind = 'shared'
   cpus = 1
+  memory_mb = 512
