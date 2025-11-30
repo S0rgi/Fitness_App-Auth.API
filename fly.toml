@@ -6,19 +6,26 @@
 app = 'fitness-app-auth-api'
 primary_region = 'fra'
 
-
 [[services]]
   internal_port = 8080
-  force_https = true
-  auto_stop_machines = 'stop'
+  protocol = "tcp"
   auto_start_machines = true
+  auto_stop_machines = "stop"
   min_machines_running = 0
-  processes = ['app']
+  processes = ["app"]
+
+  [[services.ports]]
+    port = 443
+    handlers = ["tls","http2"]
+
+  [[services.ports]]
+    port = 80
+    handlers = ["http"]
 
   [http_service.http_options]
     h2_streams = 100
+
 [[vm]]
-  memory = '512mb'
-  cpu_kind = 'shared'
+  memory = "512mb"
+  cpu_kind = "shared"
   cpus = 1
-  memory_mb = 512
