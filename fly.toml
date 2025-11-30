@@ -15,6 +15,9 @@ primary_region = 'waw'
   auto_stop_machines = "stop"
   min_machines_running = 0
 
+  [http_service.http_options]
+    h2_streams = 100
+
 [[vm]]
   memory = '512mb'
   cpu_kind = 'shared'
