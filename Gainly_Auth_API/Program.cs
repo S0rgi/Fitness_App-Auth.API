@@ -161,10 +161,11 @@ app.UseCors("AllowFrontend");
 
 app.UseAuthentication();
 app.UseAuthorization();
-
+app.UseGrpcWeb(); 
 app.MapControllers();
 
 app.MapGrpcService<UserGrpcService>()
+    .EnableGrpcWeb()
    .AllowAnonymous();       // Если нужно разрешить анонимный доступ
 
 app.MapGet("/", () => "Use a gRPC client to communicate");
