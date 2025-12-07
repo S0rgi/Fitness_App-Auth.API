@@ -59,6 +59,11 @@ public class FriendshipService : IFriendshipService
             return null;
 
         friendship.Status = accept ? FriendshipStatus.Accepted : FriendshipStatus.Rejected;
+
+        if (!accept)
+        {
+            await _friendships.RemoveAsync(friendship,cancellationToken);
+        }
         await _friendships.SaveChangesAsync(cancellationToken);
 
         var notification = new NotificationMessage
@@ -69,7 +74,6 @@ public class FriendshipService : IFriendshipService
             Action = friendship.Status.ToString()
         };
         await _publisher.PublishAsync(JsonSerializer.Serialize(notification));
-
         return (friendship, friendship.User, friendship.Friend);
     }
 
