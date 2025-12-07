@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Gainly_Auth_API.Data;
 using Gainly_Auth_API.Interfaces;
+using Gainly_Auth_API.Dtos;
 
 namespace Gainly_Auth_API.Service
 {
@@ -46,6 +47,19 @@ namespace Gainly_Auth_API.Service
             await _context.SaveChangesAsync();
             return true;
         }
+
+        public async Task<GetMeResponse> GetMe(Guid userId)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            return new GetMeResponse()
+            {
+                nickname = user.Username,
+                Email = user.Email,
+                TGUsername = user.TGUsername,
+                RegistrationDate = user.RegistrationDate
+            };
+        }
+
 
         public async Task<bool> UserExistsAsync(string email)
         {

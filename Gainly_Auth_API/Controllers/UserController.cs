@@ -40,7 +40,7 @@ namespace Gainly_Auth_API.Controllers
                 _ => Problem(statusCode: StatusCodes.Status500InternalServerError)
             };
         }
-        
+        [Authorize]
         [HttpDelete("DeleteUser")]
         public async Task<IActionResult> DeleteUser(string email, CancellationToken ct){
             var deleted = await _userService.DeleteUserByEmailAsync(email);
@@ -54,6 +54,19 @@ namespace Gainly_Auth_API.Controllers
             if (!exists)
                 return Problem(title: "Bad Request", detail: "email не найден", statusCode: StatusCodes.Status400BadRequest);
             return Ok("email найден");
+        }
+
+        [Authorize]
+        [HttpGet("me")]
+        [ProducesResponseType(typeof(GetMeResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> GetMe(CancellationToken ct)
+        {
+            var sub = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!Guid.TryParse(sub, out var userId))
+                return Problem(title: "Unauthorized", statusCode: StatusCodes.Status401Unauthorized);
+            var pending = await _userService.GetMe(userId);
+            return Ok(pending);
         }
 
     }
