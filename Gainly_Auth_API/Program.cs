@@ -9,6 +9,7 @@ using Gainly_Auth_API.Service;
 using Gainly_Auth_API.Service.Repositories;
 using Gainly_Auth_API.Models;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Prometheus;
 // Загрузим .env (только локально)
 DotNetEnv.Env.Load("../.env");
 
@@ -151,6 +152,9 @@ using ( var scope = app.Services.CreateScope() )
     var db = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
     db.Database.Migrate();
 }
+
+app.UseHttpMetrics();
+app.MapMetrics();
 
 app.UseRouting();
 // Middleware
