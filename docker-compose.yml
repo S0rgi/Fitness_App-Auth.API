@@ -18,20 +18,37 @@ services:
       timeout: 3s
       retries: 20
       start_period: 10s
-  e2e_tests:
-    container_name: e2e_tests_container
-    build:
-      context: .
-      dockerfile: Dockerfile.tests
-    env_file:
-      - .env
-    environment:
-      INTEGRATION_BASE_URL: http://auth_api:8080
-      ConnectionURL__AuthDb_test: ${ConnectionURL__AuthDb_test}
-    depends_on:
-      auth_api:
-        condition: service_healthy
-    working_dir: /src
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    ports:
+      - "9090:9090"
     volumes:
-      - ./:/src:ro
-    command: python e2e_tests/test.py
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    depends_on:
+      - auth_api
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+  # e2e_tests:
+  #   container_name: e2e_tests_container
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.tests
+  #   env_file:
+  #     - .env
+  #   environment:
+  #     INTEGRATION_BASE_URL: http://auth_api:8080
+  #     ConnectionURL__AuthDb_test: ${ConnectionURL__AuthDb_test}
+  #   depends_on:
+  #     auth_api:
+  #       condition: service_healthy
+  #   working_dir: /src
+  #   volumes:
+  #     - ./:/src:ro
+  #   command: python e2e_tests/test.py

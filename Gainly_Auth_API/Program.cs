@@ -10,6 +10,10 @@ using Gainly_Auth_API.Service.Repositories;
 using Gainly_Auth_API.Models;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Prometheus;
+using System.Diagnostics.Metrics;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using Prometheus.DotNetRuntime;
 // Загрузим .env (только локально)
 DotNetEnv.Env.Load("../.env");
 
@@ -30,7 +34,14 @@ builder.Services.AddCors(options =>
                   .AllowAnyMethod();
         });
 });
-
+builder.Services.AddOpenTelemetry()
+    .WithMetrics(metrics =>
+    {
+        metrics.AddAspNetCoreInstrumentation();  // HTTP
+        metrics.AddRuntimeInstrumentation();     // GC, Threads, Exceptions
+        metrics.AddProcessInstrumentation();     // CPU, Memory, Handles
+        metrics.AddPrometheusExporter();
+    });
 builder.Services.AddGrpc();
 builder.Services.AddGrpcReflection();
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -153,8 +164,8 @@ using ( var scope = app.Services.CreateScope() )
     db.Database.Migrate();
 }
 
-app.UseHttpMetrics();
-app.MapMetrics();
+
+app.MapPrometheusScrapingEndpoint();
 
 app.UseRouting();
 // Middleware
