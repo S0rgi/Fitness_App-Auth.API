@@ -101,9 +101,9 @@ public class FriendshipService : IFriendshipService
         await _friendships.SaveChangesAsync(cancellationToken);
         return true;
     }
-    public Task<List<User>> GetUsersAsync(string fuzzynick, CancellationToken cancellationToken = default)
+    public Task<List<UserSearchResponse>> GetUsersAsync(Guid userId, string fuzzynick, CancellationToken cancellationToken = default)
     {
-        return _users.GetUsersAsync(fuzzynick,cancellationToken );
+        return _users.GetUsersAsync(userId, fuzzynick, cancellationToken);
     }
 
 }

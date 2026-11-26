@@ -96,21 +96,16 @@ public class FriendController : ControllerBase
 
     [Authorize]
     [HttpGet("get-users")]
-    [ProducesResponseType(typeof(List<FuzzynickResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(List<UserSearchResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetUsers([FromQuery] FuzzynickRequest fz, CancellationToken ct)
     {
-        var Users = await _friendshipService.GetUsersAsync(fz.nickname, ct);
-        List<FuzzynickResponse> res = new();
-        foreach (var user in Users)
-        {
-            res.Add(new FuzzynickResponse
-            {
-                Username = user.Username,
-                Id = user.Id,
-                RegistrationDate = user.RegistrationDate
-            });
-        }
-        return Ok(res);
+        var sub = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!Guid.TryParse(sub, out var userId))
+            return Problem(title: "Unauthorized", statusCode: StatusCodes.Status401Unauthorized);
+
+        var users = await _friendshipService.GetUsersAsync(userId, fz.nickname, ct);
+        return Ok(users);
     }
 }
 

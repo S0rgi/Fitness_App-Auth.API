@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Gainly_Auth_API.Data;
 using Gainly_Auth_API.Interfaces;
+using Gainly_Auth_API.Dtos;
 using Gainly_Auth_API.Models;
 
 namespace Gainly_Auth_API.Service.Repositories
@@ -50,15 +51,22 @@ namespace Gainly_Auth_API.Service.Repositories
         }
         public Task SaveChangesAsync(CancellationToken ct = default) => _context.SaveChangesAsync(ct);
 
-        public async Task<List<User>> GetUsersAsync(string fuzzynick, CancellationToken ct = default)
+        public Task<List<UserSearchResponse>> GetUsersAsync(Guid userId, string fuzzynick, CancellationToken ct = default)
         {
             var limit = 5;
-            var users = await _context.Users
+            return _context.Users
                 .Where(u => EF.Functions.TrigramsSimilarity(u.Username, fuzzynick) > 0.3)
                 .OrderByDescending(u => EF.Functions.TrigramsSimilarity(u.Username, fuzzynick))
                 .Take(limit)
-                .ToListAsync();
-            return users;
+                .Select(u => new UserSearchResponse
+                {
+                    Id = u.Id,
+                    Username = u.Username,
+                    RegistrationDate = u.RegistrationDate,
+                    HasOutgoingPendingRequest = _context.Friendships.Any(f =>
+                        f.UserId == userId && f.FriendId == u.Id && f.Status == FriendshipStatus.Pending)
+                })
+                .ToListAsync(ct);
         }
 
     }

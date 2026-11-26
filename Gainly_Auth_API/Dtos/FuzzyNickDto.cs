@@ -15,7 +15,8 @@ namespace Gainly_Auth_API.Dtos
         
     }
 
+    public sealed class UserSearchResponse : FuzzynickResponse
+    {
+        public bool HasOutgoingPendingRequest { get; set; }
+    }
 }
-
-
-
