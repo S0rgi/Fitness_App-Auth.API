@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using Gainly_Auth_API.Dtos;
 using Gainly_Auth_API.Models;
 
 namespace Gainly_Auth_API.Interfaces
@@ -19,7 +20,7 @@ namespace Gainly_Auth_API.Interfaces
         Task AddEmailConfirmationAsync(EmailConfirmation confirmation, CancellationToken ct = default);
         Task<EmailConfirmation?> GetEmailConfirmationAsync(string email, string code, CancellationToken ct = default);
         Task<EmailConfirmation?> GetLastEmailConfirmationAsync(string email, CancellationToken ct = default);
-        Task <List<User>> GetUsersAsync(string fuzzynick, CancellationToken ct = default);
+        Task<List<UserSearchResponse>> GetUsersAsync(Guid userId, string fuzzynick, CancellationToken ct = default);
     }
 }
 
