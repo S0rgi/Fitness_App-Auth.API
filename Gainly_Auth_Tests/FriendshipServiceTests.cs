@@ -1,3 +1,4 @@
+using Gainly_Auth_API.Dtos;
 using Gainly_Auth_API.Data;
 using Gainly_Auth_API.Interfaces;
 using Gainly_Auth_API.Models;
@@ -64,7 +65,7 @@ public class FriendshipServiceTests
 		var users = new Mock<IUserRepository>();
 		var friendships = new Mock<IFriendshipRepository>();
 		friendships.Setup(r => r.GetFriendsAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-			.ReturnsAsync(new List<object> { new { Id = Guid.NewGuid() } });
+			.ReturnsAsync(new[] { new FuzzynickResponse { Id = Guid.NewGuid() } });
 
 		var service = new FriendshipService(db, publisher.Object, users.Object, friendships.Object);
 		var result = await service.GetFriendsAsync(Guid.NewGuid());

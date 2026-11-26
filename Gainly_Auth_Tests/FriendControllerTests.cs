@@ -1,3 +1,4 @@
+using Gainly_Auth_API.Dtos;
 using System.Security.Claims;
 using Gainly_Auth_API.Controllers;
 using Gainly_Auth_API.Interfaces;
@@ -86,7 +87,7 @@ public class FriendControllerTests
 		var service = new Mock<IFriendshipService>();
 		var userId = Guid.NewGuid();
 		service.Setup(s => s.GetPendingRequestsAsync(userId, It.IsAny<CancellationToken>()))
-			.ReturnsAsync(new List<object> { new { Id = Guid.NewGuid() } });
+			.ReturnsAsync(new[] { new FriendsRequestListDto { FriendshipId = Guid.NewGuid() } });
 
 		var controller = CreateControllerWithUser(service, userId);
 		var result = await controller.GetPendingRequests(CancellationToken.None);
@@ -95,12 +96,30 @@ public class FriendControllerTests
 	}
 
 	[Fact]
+	public async Task GetUsers_ReturnsSearchResultsForAuthenticatedUser()
+	{
+		var service = new Mock<IFriendshipService>();
+		var userId = Guid.NewGuid();
+		var matches = new List<UserSearchResponse>
+		{
+			new() { Username = "friend", HasOutgoingPendingRequest = true }
+		};
+		service.Setup(s => s.GetUsersAsync(userId, "fri", CancellationToken.None)).ReturnsAsync(matches);
+
+		var controller = CreateControllerWithUser(service, userId);
+		var result = await controller.GetUsers(new FuzzynickRequest { nickname = "fri" }, CancellationToken.None);
+
+		var ok = Assert.IsType<OkObjectResult>(result);
+		Assert.Same(matches, ok.Value);
+	}
+
+	[Fact]
 	public async Task GetFriends_ReturnsOk_WithList()
 	{
 		var service = new Mock<IFriendshipService>();
 		var userId = Guid.NewGuid();
 		service.Setup(s => s.GetFriendsAsync(userId, It.IsAny<CancellationToken>()))
-			.ReturnsAsync(new List<object> { new { Id = Guid.NewGuid(), Username = "f" } });
+			.ReturnsAsync(new[] { new FuzzynickResponse { Id = Guid.NewGuid(), Username = "f" } });
 
 		var controller = CreateControllerWithUser(service, userId);
 		var result = await controller.GetFriends(CancellationToken.None);
